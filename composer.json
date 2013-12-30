@@ -1,0 +1,25 @@
+{
+    "name": "webignition/web-resource-service",
+    "type": "library",
+    "description": "Service to retrieve over HTTP a \\webignition\\WebResource\\WebResource",
+    "keywords": ["web", "resource", "service"],
+    "homepage": "https://github.com/webignition/web-resource-service",
+    "license": "MIT",
+
+    "require": {
+        "php": ">=5.3.2",
+        "guzzle/guzzle": ">=3.8.0"
+    },
+
+    "autoload": {
+        "psr-0": {
+            "webignition\\Tests": "tests/",
+            "": "src/"
+        }
+    },
+
+    "require-dev": {
+        "symfony/class-loader": "*",
+        "phpunit/phpunit": "3.7.*"
+    }
+}
