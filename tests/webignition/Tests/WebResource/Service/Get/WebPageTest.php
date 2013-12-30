@@ -4,7 +4,7 @@ namespace webignition\Tests\WebResource\Service;
 
 use webignition\Tests\WebResource\Service\BaseTest;
 
-class ServiceTest extends BaseTest {
+class WebPageTest extends BaseTest {
     
     public function testGetWebPageAsWebResource() {
         $this->setHttpFixtures($this->buildHttpFixtureSet($this->getHttpFixtures($this->getCommonFixturesDataPath(), array(
