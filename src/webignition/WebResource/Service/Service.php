@@ -80,13 +80,14 @@ class Service {
         $mediaTypeParser = new InternetMediaTypeParser();
         $mediaTypeParser->setAttemptToRecoverFromInvalidInternalCharacter(true);
         $mediaTypeParser->setIgnoreInvalidAttributes(true);
-        $contentType = $mediaTypeParser->parse($response->getContentType());               
-
-        $webResourceClassName = $this->getWebResourceClassName($contentType->getTypeSubtypeString());        
-        if ($webResourceClassName === self::DEFAULT_WEB_RESOURCE_MODEL && $this->allowUnknownResourceTypes === false) {
+        $contentType = $mediaTypeParser->parse($response->getContentType());
+        
+        if (!$this->hasMappedWebResourceClassName($contentType) && $this->allowUnknownResourceTypes === false) {
             throw new InvalidContentTypeException($contentType, $response, $request);
         }
 
+        $webResourceClassName = $this->getWebResourceClassName($contentType->getTypeSubtypeString());
+        
         $resource = new $webResourceClassName;                
         $resource->setContent($response->getBody(true));                              
         $resource->setContentType((string)$contentType);        
@@ -103,7 +104,17 @@ class Service {
      * @return string
      */
     private function getWebResourceClassName($contentType) {
-        return (isset($this->contentTypeWebResourceMap[$contentType])) ? $this->contentTypeWebResourceMap[$contentType] : self::DEFAULT_WEB_RESOURCE_MODEL;
+        return ($this->hasMappedWebResourceClassName($contentType)) ? $this->contentTypeWebResourceMap[$contentType] : self::DEFAULT_WEB_RESOURCE_MODEL;
+    }
+    
+    
+    /**
+     * 
+     * @param string $contentType
+     * @return boolean
+     */
+    private function hasMappedWebResourceClassName($contentType) {        
+        return isset($this->contentTypeWebResourceMap[(string)$contentType]);
     }
     
 }

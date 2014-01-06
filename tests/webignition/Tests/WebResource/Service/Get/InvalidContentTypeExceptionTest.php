@@ -27,7 +27,7 @@ class InvalidContentTypeExceptionTest extends BaseTest {
         
         $request = $this->getHttpClient()->get('http://example.com/');
         
-        $webResourceService = $this->getDefaultWebResourceService();        
+        $webResourceService = $this->getWebResourceServiceWithContentTypeMap();      
         $webResourceService->disableAllowUnknownResourceTypes();
         $webResourceService->get($request);
     }
