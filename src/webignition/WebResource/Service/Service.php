@@ -4,6 +4,7 @@ namespace webignition\WebResource\Service;
 
 use webignition\InternetMediaType\Parser\Parser as InternetMediaTypeParser;
 use webignition\WebResource\Exception\Exception as WebResourceException;
+use webignition\WebResource\Exception\InvalidContentTypeException;
 
 class Service {
     
@@ -16,6 +17,13 @@ class Service {
      * @var array
      */
     private $contentTypeWebResourceMap = array();
+    
+    
+    /**
+     *
+     * @var boolean
+     */
+    private $allowUnknownResourceTypes = true;
 
     
     /**
@@ -27,6 +35,16 @@ class Service {
         if (is_array($contentTypeWebResourceMap)) {
             $this->contentTypeWebResourceMap = $contentTypeWebResourceMap;        
         }
+    }
+    
+    
+    public function enableAllowUnknownResourceTypes() {
+        $this->allowUnknownResourceTypes = true;
+    }
+    
+    
+    public function disableAllowUnknownResourceTypes() {
+        $this->allowUnknownResourceTypes = false;
     }
     
     /**
@@ -64,7 +82,10 @@ class Service {
         $mediaTypeParser->setIgnoreInvalidAttributes(true);
         $contentType = $mediaTypeParser->parse($response->getContentType());               
 
-        $webResourceClassName = $this->getWebResourceClassName($contentType->getTypeSubtypeString());
+        $webResourceClassName = $this->getWebResourceClassName($contentType->getTypeSubtypeString());        
+        if ($webResourceClassName === self::DEFAULT_WEB_RESOURCE_MODEL && $this->allowUnknownResourceTypes === false) {
+            throw new InvalidContentTypeException($contentType, $response, $request);
+        }
 
         $resource = new $webResourceClassName;                
         $resource->setContent($response->getBody(true));                              

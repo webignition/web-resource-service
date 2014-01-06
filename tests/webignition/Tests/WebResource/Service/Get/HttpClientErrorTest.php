@@ -11,7 +11,7 @@ class HttpClientErrorTest extends BaseTest {
             '404.httpresponse'
         ))));
         
-        $this->setExpectedException('webignition\WebResource\Exception\Exception');
+        $this->setExpectedException('\webignition\WebResource\Exception\Exception');
         
         $request = $this->getHttpClient()->get('http://example.com/');
         $this->getDefaultWebResourceService()->get($request);
