@@ -91,11 +91,11 @@ class Service {
         $mediaTypeParser->setIgnoreInvalidAttributes(true);
         $contentType = $mediaTypeParser->parse($response->getContentType());
         
-        if (!$this->hasMappedWebResourceClassName($contentType) && $this->allowUnknownResourceTypes === false) {
+        if (!$this->hasMappedWebResourceClassName($contentType->getTypeSubtypeString()) && $this->allowUnknownResourceTypes === false) {
             throw new InvalidContentTypeException($contentType, $response, $request);
         }
         
-        return $this->create($response->getEffectiveUrl(), $response->getBody(true), $contentType);
+        return $this->create($response->getEffectiveUrl(), $response->getBody(true), $contentType->getTypeSubtypeString());
     }
     
     

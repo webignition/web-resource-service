@@ -27,6 +27,18 @@ class WebPageTest extends BaseTest {
         $resource = $this->getWebResourceServiceWithContentTypeMap()->get($request);
         
         $this->assertInstanceOf('webignition\WebResource\WebPage\WebPage', $resource);
+    } 
+    
+    
+    public function testGetWebPageWithContentTypeAttributeAsWebPage() {
+        $this->setHttpFixtures($this->buildHttpFixtureSet($this->getHttpFixtures($this->getCommonFixturesDataPath(), array(
+            'example.com.html.with-charset-in-content-type.200.httpresponse'
+        ))));
+        
+        $request = $this->getHttpClient()->get('http://example.com/');        
+        $resource = $this->getWebResourceServiceWithContentTypeMap()->get($request);
+        
+        $this->assertInstanceOf('webignition\WebResource\WebPage\WebPage', $resource);
     }    
     
 }
