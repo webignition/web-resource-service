@@ -38,6 +38,15 @@ class Service {
     }
     
     
+    /**
+     * 
+     * @return array
+     */
+    public function getContentTypeWebResourceMap() {
+        return $this->contentTypeWebResourceMap;
+    }
+    
+    
     public function enableAllowUnknownResourceTypes() {
         $this->allowUnknownResourceTypes = true;
     }
