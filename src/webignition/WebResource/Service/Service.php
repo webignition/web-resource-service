@@ -94,16 +94,29 @@ class Service {
         if (!$this->hasMappedWebResourceClassName($contentType) && $this->allowUnknownResourceTypes === false) {
             throw new InvalidContentTypeException($contentType, $response, $request);
         }
-
-        $webResourceClassName = $this->getWebResourceClassName($contentType->getTypeSubtypeString());
+        
+        return $this->create($response->getEffectiveUrl(), $response->getBody(true), $contentType);
+    }
+    
+    
+    /**
+     * 
+     * @param string $url
+     * @param string $content
+     * @param string $contentType
+     * @return \webignition\WebResource\WebResource
+     */
+    public function create($url, $content, $contentType) {
+        $webResourceClassName = $this->getWebResourceClassName($contentType);
         
         $resource = new $webResourceClassName;                
-        $resource->setContent($response->getBody(true));                              
-        $resource->setContentType((string)$contentType);        
-        $resource->setUrl($response->getEffectiveUrl());          
+        $resource->setContent($content);                              
+        $resource->setContentType($contentType);        
+        $resource->setUrl($url);          
 
         return $resource;
     }
+    
     
 
     /**
@@ -112,8 +125,8 @@ class Service {
      * @param string $contentType
      * @return string
      */
-    private function getWebResourceClassName($contentType) {
-        return ($this->hasMappedWebResourceClassName($contentType)) ? $this->contentTypeWebResourceMap[$contentType] : self::DEFAULT_WEB_RESOURCE_MODEL;
+    private function getWebResourceClassName($contentType) {        
+        return ($this->hasMappedWebResourceClassName($contentType)) ? $this->contentTypeWebResourceMap[(string)$contentType] : self::DEFAULT_WEB_RESOURCE_MODEL;
     }
     
     
