@@ -23,4 +23,13 @@ class InvalidContentTypeException extends Exception {
         parent::__construct($response, $request);
     }
     
+    
+    /**
+     * 
+     * @return \webignition\InternetMediaType\InternetMediaType
+     */
+    public function getResponseContentType() {
+        return $this->responseContentType;
+    }
+    
 }

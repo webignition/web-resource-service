@@ -23,13 +23,19 @@ class InvalidContentTypeExceptionTest extends BaseTest {
             'example.com.txt.200.httpresponse'
         ))));
         
-        $this->setExpectedException('webignition\WebResource\Exception\InvalidContentTypeException');
+        //$this->setExpectedException('webignition\WebResource\Exception\InvalidContentTypeException');
         
         $request = $this->getHttpClient()->get('http://example.com/');
         
-        $webResourceService = $this->getWebResourceServiceWithContentTypeMap();      
+        $webResourceService = $this->getWebResourceServiceWithContentTypeMap();
         $webResourceService->disableAllowUnknownResourceTypes();
-        $webResourceService->get($request);
+        
+        try {
+            $webResourceService->get($request);
+            $this->fail('InvalidContentTypeException not thrown');
+        } catch (\webignition\WebResource\Exception\InvalidContentTypeException $invalidContentTypeException) {
+            $this->assertEquals('text/plain', (string)$invalidContentTypeException->getResponseContentType());
+        }
     }
     
     
