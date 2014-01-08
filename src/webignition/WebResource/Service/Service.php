@@ -5,56 +5,41 @@ namespace webignition\WebResource\Service;
 use webignition\InternetMediaType\Parser\Parser as InternetMediaTypeParser;
 use webignition\WebResource\Exception\Exception as WebResourceException;
 use webignition\WebResource\Exception\InvalidContentTypeException;
+use webignition\WebResource\Service\Configuration;
 
 class Service {
     
-    const DEFAULT_WEB_RESOURCE_MODEL = 'webignition\WebResource\WebResource'; 
+    /**
+     *
+     * @var \webignition\WebResource\Service\Configuration 
+     */
+    private $configuration = null;
     
     
     /**
-     * Maps content types to WebResource subclasses
      * 
-     * @var array
+     * @param \webignition\WebResource\Service\Configuration $configuration
+     * @return \webignition\WebResource\Service\Service
      */
-    private $contentTypeWebResourceMap = array();
+    public function setConfiguration(\webignition\WebResource\Service\Configuration $configuration) {
+        $this->configuration = $configuration;
+        return $this;
+    }
     
     
     /**
-     *
-     * @var boolean
+     * 
+     * @return \webignition\WebResource\Service\Configuration
      */
-    private $allowUnknownResourceTypes = true;
-
-    
-    /**
-     *
-     * @param \SimplyTestable\WorkerBundle\Services\HttpClientService $httpClientService
-     * @param array $contentTypeWebResourceMap
-     */
-    public function __construct($contentTypeWebResourceMap = null) {    
-        if (is_array($contentTypeWebResourceMap)) {
-            $this->contentTypeWebResourceMap = $contentTypeWebResourceMap;        
+    public function getConfiguration() {
+        if (is_null($this->configuration)) {
+            $this->configuration = new Configuration();
         }
+        
+        return $this->configuration;
     }
     
     
-    /**
-     * 
-     * @return array
-     */
-    public function getContentTypeWebResourceMap() {
-        return $this->contentTypeWebResourceMap;
-    }
-    
-    
-    public function enableAllowUnknownResourceTypes() {
-        $this->allowUnknownResourceTypes = true;
-    }
-    
-    
-    public function disableAllowUnknownResourceTypes() {
-        $this->allowUnknownResourceTypes = false;
-    }
     
     /**
      *
@@ -91,7 +76,7 @@ class Service {
         $mediaTypeParser->setIgnoreInvalidAttributes(true);
         $contentType = $mediaTypeParser->parse($response->getContentType());
         
-        if (!$this->hasMappedWebResourceClassName($contentType->getTypeSubtypeString()) && $this->allowUnknownResourceTypes === false) {
+        if (!$this->getConfiguration()->hasMappedWebResourceClassName($contentType->getTypeSubtypeString()) && $this->getConfiguration()->getAllowUnknownResourceTypes() === false) {
             throw new InvalidContentTypeException($contentType, $response, $request);
         }
         
@@ -107,7 +92,7 @@ class Service {
      * @return \webignition\WebResource\WebResource
      */
     public function create($url, $content, $contentType) {
-        $webResourceClassName = $this->getWebResourceClassName($contentType);
+        $webResourceClassName = $this->getConfiguration()->getWebResourceClassName($contentType);
         
         $resource = new $webResourceClassName;                
         $resource->setContent($content);                              
@@ -115,28 +100,6 @@ class Service {
         $resource->setUrl($url);          
 
         return $resource;
-    }
-    
-    
-
-    /**
-     * Get the WebResource subclass name for a given content type
-     * 
-     * @param string $contentType
-     * @return string
-     */
-    private function getWebResourceClassName($contentType) {        
-        return ($this->hasMappedWebResourceClassName($contentType)) ? $this->contentTypeWebResourceMap[(string)$contentType] : self::DEFAULT_WEB_RESOURCE_MODEL;
-    }
-    
-    
-    /**
-     * 
-     * @param string $contentType
-     * @return boolean
-     */
-    private function hasMappedWebResourceClassName($contentType) {        
-        return isset($this->contentTypeWebResourceMap[(string)$contentType]);
     }
     
 }

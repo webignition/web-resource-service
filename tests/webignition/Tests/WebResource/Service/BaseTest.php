@@ -176,11 +176,14 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase {
     
     
     protected function getWebResourceServiceWithContentTypeMap() {
-        return new WebResourceService(array(
+        $webResourceService = new WebResourceService();
+        $webResourceService->getConfiguration()->setContentTypeWebResourceMap(array(
             'text/html' => 'webignition\WebResource\WebPage\WebPage',
             'application/xhtml+xml' =>'webignition\WebResource\WebPage\WebPage',
             'application/json' => 'webignition\WebResource\JsonDocument\JsonDocument'            
-        ));        
+        ));
+        
+        return $webResourceService;
     }
     
     

@@ -14,7 +14,7 @@ class InvalidContentTypeExceptionTest extends BaseTest {
         $request = $this->getHttpClient()->get('http://example.com/');
         
         $webResourceService = $this->getDefaultWebResourceService();        
-        $webResourceService->enableAllowUnknownResourceTypes();
+        $webResourceService->getConfiguration()->enableAllowUnknownResourceTypes();
         $webResourceService->get($request);
     }    
     
@@ -28,7 +28,7 @@ class InvalidContentTypeExceptionTest extends BaseTest {
         $request = $this->getHttpClient()->get('http://example.com/');
         
         $webResourceService = $this->getWebResourceServiceWithContentTypeMap();
-        $webResourceService->disableAllowUnknownResourceTypes();
+        $webResourceService->getConfiguration()->disableAllowUnknownResourceTypes();
         
         try {
             $webResourceService->get($request);
@@ -47,7 +47,7 @@ class InvalidContentTypeExceptionTest extends BaseTest {
         $request = $this->getHttpClient()->get('http://example.com/');
         
         $webResourceService = $this->getWebResourceServiceWithContentTypeMap();        
-        $webResourceService->disableAllowUnknownResourceTypes();
+        $webResourceService->getConfiguration()->disableAllowUnknownResourceTypes();
         $webResourceService->get($request);
     }
     
