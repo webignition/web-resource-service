@@ -62,7 +62,7 @@ class Service {
                 return $this->get($this->deEncodeRequestUrl($request));
             }
             
-            $response = $serverErrorResponseException->getResponse();
+            $response = $clientErrorResponseException->getResponse();
         }
         
         if ($response->isInformational()) {

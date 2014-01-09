@@ -19,6 +19,7 @@ class RetryWithUrlEncodingDisabledTest extends BaseTest {
         
         $request = $this->getHttpClient()->get('http://example.com/');       
         $service = $this->getDefaultWebResourceService();
+        $service->getConfiguration()->enableRetryWithUrlEncodingDisabled();
         $resource = $service->get($request);
         
         $expectedResponse = \Guzzle\Http\Message\Response::fromMessage(file_get_contents($this->getCommonFixturesDataPath() . '/' . $successResponseName));        
@@ -41,6 +42,7 @@ class RetryWithUrlEncodingDisabledTest extends BaseTest {
         
         $request = $this->getHttpClient()->get('http://example.com/');
         $service = $this->getDefaultWebResourceService();
+        $service->getConfiguration()->enableRetryWithUrlEncodingDisabled();
         $resource = $service->get($request);
         
         $expectedResponse = \Guzzle\Http\Message\Response::fromMessage(file_get_contents($this->getCommonFixturesDataPath() . '/' . $successResponseName));        

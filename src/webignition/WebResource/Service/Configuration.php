@@ -27,7 +27,7 @@ class Configuration {
      *
      * @var boolean
      */
-    private $retryWithUrlEncodingDisabled = true;
+    private $retryWithUrlEncodingDisabled = false;
     
     
     /**
