@@ -47,13 +47,22 @@ class Service {
      * @return \webignition\WebResource\WebResource 
      */
     public function get(\Guzzle\Http\Message\Request $request) {
-        
         try {
             $response = $request->send();
-        } catch (\Guzzle\Http\Exception\ServerErrorResponseException $serverErrorResponseException) {
+        } catch (\Guzzle\Http\Exception\ServerErrorResponseException $serverErrorResponseException) {                        
+            if ($this->getConfiguration()->getRetryWithUrlEncodingDisabled() && !$this->getConfiguration()->getHasRetriedWithUrlEncodingDisabled()) {
+                $this->getConfiguration()->setHasRetriedWithUrlEncodingDisabled(true);
+                return $this->get($this->deEncodeRequestUrl($request));
+            }
+            
             $response = $serverErrorResponseException->getResponse();
         } catch (\Guzzle\Http\Exception\ClientErrorResponseException $clientErrorResponseException) {
-            $response = $clientErrorResponseException->getResponse();
+            if ($this->getConfiguration()->getRetryWithUrlEncodingDisabled() && !$this->getConfiguration()->getHasRetriedWithUrlEncodingDisabled()) {
+                $this->getConfiguration()->setHasRetriedWithUrlEncodingDisabled(true);
+                return $this->get($this->deEncodeRequestUrl($request));
+            }
+            
+            $response = $serverErrorResponseException->getResponse();
         }
         
         if ($response->isInformational()) {
@@ -100,6 +109,25 @@ class Service {
         $resource->setUrl($url);          
 
         return $resource;
+    }
+    
+    
+    /**
+     * 
+     * @param \Guzzle\Http\Message\Request $request
+     * @return \Guzzle\Http\Message\Request
+     */
+    private function deEncodeRequestUrl(\Guzzle\Http\Message\Request $request) {
+        // Intentionally not a one-liner to make the process easier to understand
+        $requestUrl = $request->getUrl(true);
+        $requestQuery = $requestUrl->getQuery(true);
+        $requestQuery->useUrlEncoding(false);
+
+        $requestUrl->setQuery($requestQuery);
+        $request->setUrl($requestUrl);
+
+        return $request;
+      
     }
     
 }

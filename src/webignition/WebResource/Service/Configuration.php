@@ -29,6 +29,13 @@ class Configuration {
      */
     private $retryWithUrlEncodingDisabled = true;
     
+    
+    /**
+     *
+     * @var boolean
+     */
+    private $hasTriedWithUrlEncodingDisabled = false;
+    
 
     /**
      * 
@@ -105,7 +112,25 @@ class Configuration {
      */
     public function getWebResourceClassName($contentType) {        
         return ($this->hasMappedWebResourceClassName($contentType)) ? $this->contentTypeWebResourceMap[(string)$contentType] : self::DEFAULT_WEB_RESOURCE_MODEL;
-    }    
+    }  
+    
+    
+    /**
+     * 
+     * @param boolean $hasRetried
+     */
+    public function setHasRetriedWithUrlEncodingDisabled($hasRetried) {
+        $this->hasTriedWithUrlEncodingDisabled = $hasRetried;
+    }
+    
+    
+    /**
+     * 
+     * @return boolean
+     */
+    public function getHasRetriedWithUrlEncodingDisabled() {
+        return $this->hasTriedWithUrlEncodingDisabled;
+    }
     
     
 }
