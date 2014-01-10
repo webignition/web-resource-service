@@ -74,4 +74,33 @@ class RetryWithUrlEncodingDisabledTest extends BaseTest {
         $this->assertInstanceOf('\webignition\WebResource\Exception\Exception', $webResourceException);        
         $this->assertEquals(500, $webResourceException->getResponse()->getStatusCode());
     }
+    
+    
+    /**
+     * Test that retrying is applied to subsequent requests when re-using the
+     * web resource service
+     */
+    public function testRetriesAcrossSubsequentRequests() {                
+        $this->setHttpFixtures($this->buildHttpFixtureSet(array(
+            file_get_contents($this->getCommonFixturesDataPath() . '/400.httpresponse'),
+            file_get_contents($this->getCommonFixturesDataPath() . '/200.httpresponse'),
+            file_get_contents($this->getCommonFixturesDataPath() . '/400.httpresponse'),
+            file_get_contents($this->getCommonFixturesDataPath() . '/200.httpresponse')            
+        )));
+        
+        $service = $this->getDefaultWebResourceService();        
+        $service->getConfiguration()->enableRetryWithUrlEncodingDisabled();
+        
+        $baseRequest = $this->getHttpClient()->get();
+        
+        $request1 = clone $baseRequest;
+        $request1->setUrl('http://example.com/foo');               
+
+        $this->assertEquals('webignition\WebResource\WebResource', get_class($service->get($request1)));        
+        
+        $request2 = clone $baseRequest;
+        $request2->setUrl('http://example.com/bar');
+      
+        $this->assertEquals('webignition\WebResource\WebResource', get_class($service->get($request2)));
+    }    
 }

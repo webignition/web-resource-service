@@ -65,6 +65,10 @@ class Service {
             $response = $clientErrorResponseException->getResponse();
         }
         
+        if ($this->getConfiguration()->getHasRetriedWithUrlEncodingDisabled()) {
+            $this->getConfiguration()->setHasRetriedWithUrlEncodingDisabled(false);
+        }
+        
         if ($response->isInformational()) {
             // Interesting to see what makes this happen
             throw new WebResourceException($response, $request);
