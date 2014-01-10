@@ -16,6 +16,11 @@ class Service {
     private $configuration = null;
     
     
+    /**
+     * 
+     * @param array $configurationValues
+     * @return \webignition\WebResource\Service\Service
+     */
     public function createConfiguration($configurationValues) {
         $configuration = new Configuration();        
         
