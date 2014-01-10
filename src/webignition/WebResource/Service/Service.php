@@ -16,6 +16,34 @@ class Service {
     private $configuration = null;
     
     
+    public function createConfiguration($configurationValues) {
+        $configuration = new Configuration();        
+        
+        if (isset($configurationValues['allow-uknown-resource-types'])) {
+            if ($configurationValues['allow-uknown-resource-types']) {
+                $configuration->enableAllowUnknownResourceTypes();
+            } else {
+                $configuration->disableAllowUnknownResourceTypes();
+            }
+        }
+        
+        if (isset($configurationValues['retry-with-url-encoding-disabled'])) {
+            if ($configurationValues['retry-with-url-encoding-disabled']) {
+                $configuration->enableRetryWithUrlEncodingDisabled();
+            } else {
+                $configuration->disableRetryWithUrlEncodingDisabled();
+            }
+        }
+        
+        if (isset($configurationValues['content-type-web-resource-map'])) {
+            $configuration->setContentTypeWebResourceMap($configurationValues['content-type-web-resource-map']);
+        }
+        
+        $this->setConfiguration($configuration);
+        return $this;       
+    }
+    
+    
     /**
      * 
      * @param \webignition\WebResource\Service\Configuration $configuration
