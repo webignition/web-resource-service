@@ -126,7 +126,7 @@ class Service {
             throw new InvalidContentTypeException($contentType, $response, $request);
         }
         
-        return $this->create($response->getEffectiveUrl(), $response->getBody(true), $contentType->getTypeSubtypeString());
+        return $this->create($response->getEffectiveUrl(), $response->getBody(true), (string)$contentType);
     }
     
     
@@ -138,11 +138,16 @@ class Service {
      * @return \webignition\WebResource\WebResource
      */
     public function create($url, $content, $contentType) {
-        $webResourceClassName = $this->getConfiguration()->getWebResourceClassName($contentType);
+        $mediaTypeParser = new InternetMediaTypeParser();
+        $mediaTypeParser->setAttemptToRecoverFromInvalidInternalCharacter(true);
+        $mediaTypeParser->setIgnoreInvalidAttributes(true);
+        $contentTypeObject = $mediaTypeParser->parse($contentType);        
+        
+        $webResourceClassName = $this->getConfiguration()->getWebResourceClassName($contentTypeObject->getTypeSubtypeString());
         
         $resource = new $webResourceClassName;                
         $resource->setContent($content);                              
-        $resource->setContentType($contentType);        
+        $resource->setContentType($contentTypeObject);        
         $resource->setUrl($url);          
 
         return $resource;
