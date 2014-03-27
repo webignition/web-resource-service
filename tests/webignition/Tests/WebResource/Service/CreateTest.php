@@ -8,7 +8,11 @@ class CreateTest extends BaseTest {
     
     public function testCreateForUnknownContentType() {
         $service = $this->getDefaultWebResourceService();
-        $resource = $service->create('http://example.com/', 'Hello World!', 'text/plain');
+        
+        $response = \Guzzle\Http\Message\Response::fromMessage("HTTP/1.0 200 OK\nContent-Type:text/plain\n\nHello World!");
+        $response->setEffectiveUrl('http://example.com/');
+        
+        $resource = $service->create($response);
         
         $this->assertEquals('webignition\WebResource\WebResource', get_class($resource));
     }
@@ -16,7 +20,11 @@ class CreateTest extends BaseTest {
     
     public function testCreateForKnownContentType() {
         $service = $this->getWebResourceServiceWithContentTypeMap();
-        $resource = $service->create('http://example.com/', '<!DOCTYPE html><html></html>', 'text/html');
+        
+        $response = \Guzzle\Http\Message\Response::fromMessage("HTTP/1.0 200 OK\nContent-Type:text/html\n\n<!DOCTYPE html><html></html>");
+        $response->setEffectiveUrl('http://example.com/');
+        
+        $resource = $service->create($response);        
         
         $this->assertEquals('webignition\WebResource\WebPage\WebPage', get_class($resource));
     }

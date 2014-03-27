@@ -117,40 +117,42 @@ class Service {
             throw new WebResourceException($response, $request); 
         }
         
-        $mediaTypeParser = new InternetMediaTypeParser();
-        $mediaTypeParser->setAttemptToRecoverFromInvalidInternalCharacter(true);
-        $mediaTypeParser->setIgnoreInvalidAttributes(true);
-        $contentType = $mediaTypeParser->parse($response->getContentType());
+        $contentType = $this->getContentTypeFromResponse($response);
         
         if (!$this->getConfiguration()->hasMappedWebResourceClassName($contentType->getTypeSubtypeString()) && $this->getConfiguration()->getAllowUnknownResourceTypes() === false) {
             throw new InvalidContentTypeException($contentType, $response, $request);
         }
         
-        return $this->create($response->getEffectiveUrl(), $response->getBody(true), (string)$contentType);
+        return $this->create($response);
     }
     
     
     /**
      * 
-     * @param string $url
-     * @param string $content
-     * @param string $contentType
+     * @param \Guzzle\Http\Message\Response $response
      * @return \webignition\WebResource\WebResource
      */
-    public function create($url, $content, $contentType) {
+    public function create(\Guzzle\Http\Message\Response $response) {        
+        $webResourceClassName = $this->getConfiguration()->getWebResourceClassName($this->getContentTypeFromResponse($response)->getTypeSubtypeString());
+        
+        $resource = new $webResourceClassName;                
+        $resource->setHttpResponse($response);
+        
+        return $resource;
+    }
+    
+    
+    
+    /**
+     * 
+     * @param \Guzzle\Http\Message\Response $response
+     * @return \webignition\InternetMediaType\InternetMediaType
+     */
+    private function getContentTypeFromResponse(\Guzzle\Http\Message\Response $response) {
         $mediaTypeParser = new InternetMediaTypeParser();
         $mediaTypeParser->setAttemptToRecoverFromInvalidInternalCharacter(true);
         $mediaTypeParser->setIgnoreInvalidAttributes(true);
-        $contentTypeObject = $mediaTypeParser->parse($contentType);        
-        
-        $webResourceClassName = $this->getConfiguration()->getWebResourceClassName($contentTypeObject->getTypeSubtypeString());
-        
-        $resource = new $webResourceClassName;                
-        $resource->setContent($content);                              
-        $resource->setContentType($contentTypeObject);        
-        $resource->setUrl($url);          
-
-        return $resource;
+        return $mediaTypeParser->parse($response->getContentType()); 
     }
     
     

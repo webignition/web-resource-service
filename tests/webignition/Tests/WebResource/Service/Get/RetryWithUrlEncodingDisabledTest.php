@@ -25,7 +25,7 @@ class RetryWithUrlEncodingDisabledTest extends BaseTest {
         $expectedResponse = \Guzzle\Http\Message\Response::fromMessage(file_get_contents($this->getCommonFixturesDataPath() . '/' . $successResponseName));        
         
         $this->assertEquals('webignition\WebResource\WebResource', get_class($resource));        
-        $this->assertEquals($expectedResponse->getBody(), $resource->getContent());
+        $this->assertEquals($expectedResponse->getBody(true), $resource->getHttpResponse()->getBody(true));
     }
    
 
@@ -48,7 +48,7 @@ class RetryWithUrlEncodingDisabledTest extends BaseTest {
         $expectedResponse = \Guzzle\Http\Message\Response::fromMessage(file_get_contents($this->getCommonFixturesDataPath() . '/' . $successResponseName));        
         
         $this->assertEquals('webignition\WebResource\WebResource', get_class($resource));        
-        $this->assertEquals($expectedResponse->getBody(), $resource->getContent());
+        $this->assertEquals($expectedResponse->getBody(true), $resource->getHttpResponse()->getBody(true));
     } 
     
     
