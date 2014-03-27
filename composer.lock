@@ -3,7 +3,7 @@
         "This file locks the dependencies of your project to a known state",
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
     ],
-    "hash": "212e7d4e19c4dd04be681813507df8a1",
+    "hash": "bcfa194531406c76aabe2015b44894e6",
     "packages": [
         {
             "name": "doctrine/collections",
@@ -439,21 +439,21 @@
         },
         {
             "name": "webignition/web-json-model",
-            "version": "1.0",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webignition/web-json-model.git",
-                "reference": "fd92747a6fccb1be3e5ee7971bcf8b019a3bab10"
+                "reference": "b042dd446e8e9f186f857832baa6e6efa44fa6ad"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webignition/web-json-model/zipball/fd92747a6fccb1be3e5ee7971bcf8b019a3bab10",
-                "reference": "fd92747a6fccb1be3e5ee7971bcf8b019a3bab10",
+                "url": "https://api.github.com/repos/webignition/web-json-model/zipball/b042dd446e8e9f186f857832baa6e6efa44fa6ad",
+                "reference": "b042dd446e8e9f186f857832baa6e6efa44fa6ad",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.0",
-                "webignition/web-resource-model": ">=1.0,<2.0"
+                "webignition/web-resource-model": ">=1.1.1,<2.0"
             },
             "require-dev": {
                 "guzzle/guzzle": ">=3.8.1,<4",
@@ -483,20 +483,20 @@
                 "json",
                 "model"
             ],
-            "time": "2014-03-27 21:22:58"
+            "time": "2014-03-27 23:05:53"
         },
         {
             "name": "webignition/web-page-model",
-            "version": "1.0",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webignition/web-page-model.git",
-                "reference": "008c24612ac8784c16c08523bf098a91b08fabec"
+                "reference": "c1389a94bc94376fbd4979d9759b382e60dd0368"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webignition/web-page-model/zipball/008c24612ac8784c16c08523bf098a91b08fabec",
-                "reference": "008c24612ac8784c16c08523bf098a91b08fabec",
+                "url": "https://api.github.com/repos/webignition/web-page-model/zipball/c1389a94bc94376fbd4979d9759b382e60dd0368",
+                "reference": "c1389a94bc94376fbd4979d9759b382e60dd0368",
                 "shasum": ""
             },
             "require": {
@@ -504,7 +504,7 @@
                 "querypath/querypath": ">=3.0.0",
                 "webignition/character-set-list": ">=0.2,<1.0",
                 "webignition/internet-media-type": ">=0.1,<1.0",
-                "webignition/web-resource-model": ">=1.1,<2.0"
+                "webignition/web-resource-model": ">=1.1.1,<2.0"
             },
             "require-dev": {
                 "guzzle/guzzle": ">=3.8.1,<4",
@@ -534,20 +534,20 @@
                 "model",
                 "webpage"
             ],
-            "time": "2014-03-27 16:57:57"
+            "time": "2014-03-27 23:04:32"
         },
         {
             "name": "webignition/web-resource-model",
-            "version": "1.1",
+            "version": "1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webignition/web-resource-model.git",
-                "reference": "3d36ee939ac41a4a5d13bb3e4809be9fda44e16b"
+                "reference": "e8b40bdb1fcd26c94a329aefdd1dc395175796fb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webignition/web-resource-model/zipball/3d36ee939ac41a4a5d13bb3e4809be9fda44e16b",
-                "reference": "3d36ee939ac41a4a5d13bb3e4809be9fda44e16b",
+                "url": "https://api.github.com/repos/webignition/web-resource-model/zipball/e8b40bdb1fcd26c94a329aefdd1dc395175796fb",
+                "reference": "e8b40bdb1fcd26c94a329aefdd1dc395175796fb",
                 "shasum": ""
             },
             "require": {
@@ -583,7 +583,7 @@
                 "modem",
                 "web"
             ],
-            "time": "2014-03-27 14:06:57"
+            "time": "2014-03-27 22:53:20"
         }
     ],
     "packages-dev": [
