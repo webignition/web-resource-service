@@ -10,7 +10,7 @@
         "php": ">=5.3.2",
         "guzzle/guzzle": ">=3.8.0",
         "webignition/internet-media-type":">=0.4.4,<2.0",
-        "webignition/web-resource-model":">=1.1.1,<2.0",
+        "webignition/web-resource-model":">=1.1.8,<2.0",
         "webignition/web-page-model":">=1.0.1,<2.0",
         "webignition/web-json-model":">=1.0.1,<2.0"
     },
