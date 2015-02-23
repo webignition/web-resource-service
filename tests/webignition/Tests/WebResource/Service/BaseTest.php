@@ -59,71 +59,10 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase {
     protected function setHttpFixtures($fixtures) {
         $this->getHttpClient()->getEmitter()->attach(new \GuzzleHttp\Subscriber\Mock($fixtures));
     }
-    
-    
-    protected function getHttpFixtures($path, $filter) {
-        $items = array();
 
-        $fixturesDirectory = new \DirectoryIterator($path);
-        $fixturePaths = array();
-        foreach ($fixturesDirectory as $directoryItem) {
-            if ($directoryItem->isFile() && ((!is_array($filter)) || (is_array($filter) && in_array($directoryItem->getFilename(), $filter)))) {                
-                $fixturePaths[] = $directoryItem->getPathname();
-            }
-        }
-        
-        sort($fixturePaths);        
-        
-        foreach ($fixturePaths as $fixturePath) {
-            $items[] = file_get_contents($fixturePath);
-        }
-        
-        return $this->buildHttpFixtureSet($items);
-    }
-    
-    
-    /**
-     * 
-     * @param array $items Collection of http messages and/or curl exceptions
-     * @return array
-     */
-    protected function buildHttpFixtureSet($items) {
-        $fixtures = array();
-        
-        foreach ($items as $item) {
-            switch ($this->getHttpFixtureItemType($item)) {
-                case 'httpMessage':
-                    $fixtures[] = $this->getHttpResponseFromMessage($item);
-                    break;
-                
-                case 'curlException':
-                    $fixtures[] = $this->getCurlExceptionFromCurlMessage($item);                    
-                    break;
-                
-                default:
-                    throw new \LogicException();
-            }
-        }
-        
-        return $fixtures;
-    }
     
     protected function getCommonFixturesDataPath() {
         return __DIR__ . self::FIXTURES_BASE_PATH . '/Common';
-    }
-    
-    
-    /**
-     * 
-     * @param string $item
-     * @return string
-     */
-    private function getHttpFixtureItemType($item) {
-        if (substr($item, 0, strlen('HTTP')) == 'HTTP') {
-            return 'httpMessage';
-        }
-        
-        return 'curlException';
     }
     
     

@@ -1,16 +1,20 @@
 <?php
 
-namespace webignition\Tests\WebResource\Service\Get;
+namespace webignition\Tests\WebResource\Service\Get\HttpError;
 
-use webignition\Tests\WebResource\Service\BaseTest;
+use webignition\Tests\WebResource\Service\Get\GetTest;
 
-class HttpClientErrorTest extends BaseTest {
+abstract class HttpErrorTest extends GetTest {
+
+    abstract protected function getExpectedStatusCode();
+
+    protected function getHttpFixtures() {
+        return [
+            $this->getHttpResponseFromMessage("HTTP/1.1 " . $this->getExpectedStatusCode())
+        ];
+    }
     
-    public function test404ResponseThrowsWebResourceException() {
-        $this->setHttpFixtures($this->buildHttpFixtureSet($this->getHttpFixtures($this->getCommonFixturesDataPath(), array(
-            '404.httpresponse'
-        ))));
-        
+    public function testThrowsWebResourceException() {
         $this->setExpectedException('\webignition\WebResource\Exception\Exception');
         
         $request = $this->getHttpClient()->createRequest('GET', 'http://example.com/');
@@ -18,11 +22,7 @@ class HttpClientErrorTest extends BaseTest {
     } 
     
     
-    public function test404WebResourceExceptionContains404Response() {
-        $this->setHttpFixtures($this->buildHttpFixtureSet($this->getHttpFixtures($this->getCommonFixturesDataPath(), array(
-            '404.httpresponse'
-        ))));
-
+    public function testWebResourceExceptionContainsCorrectResponse() {
         $request = $this->getHttpClient()->createRequest('GET', 'http://example.com/');
 
         /* @var $webResourceException \webignition\WebResource\Exception\Exception */
@@ -34,9 +34,8 @@ class HttpClientErrorTest extends BaseTest {
         }
 
         $this->assertInstanceOf('\webignition\WebResource\Exception\Exception', $webResourceException);
-        $this->assertEquals(404, $webResourceException->getResponse()->getStatusCode());
+        $this->assertEquals($this->getExpectedStatusCode(), $webResourceException->getResponse()->getStatusCode());
 
 
     }
-    
 }
