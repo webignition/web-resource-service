@@ -1,6 +1,6 @@
 <?php
 
-namespace webignition\Tests\WebResource\Service;
+namespace webignition\Tests\WebResource\Service\Get;
 
 use webignition\Tests\WebResource\Service\BaseTest;
 
@@ -11,7 +11,7 @@ class InvalidContentTypeExceptionTest extends BaseTest {
             'example.com.txt.200.httpresponse'
         ))));
         
-        $request = $this->getHttpClient()->get('http://example.com/');
+        $request = $this->getHttpClient()->createRequest('GET', 'http://example.com/');
         
         $webResourceService = $this->getDefaultWebResourceService();        
         $webResourceService->getConfiguration()->enableAllowUnknownResourceTypes();
@@ -25,7 +25,7 @@ class InvalidContentTypeExceptionTest extends BaseTest {
         
         //$this->setExpectedException('webignition\WebResource\Exception\InvalidContentTypeException');
         
-        $request = $this->getHttpClient()->get('http://example.com/');
+        $request = $this->getHttpClient()->createRequest('GET', 'http://example.com/');
         
         $webResourceService = $this->getWebResourceServiceWithContentTypeMap();
         $webResourceService->getConfiguration()->disableAllowUnknownResourceTypes();
@@ -44,7 +44,7 @@ class InvalidContentTypeExceptionTest extends BaseTest {
             'example.com.html.200.httpresponse'
         ))));
         
-        $request = $this->getHttpClient()->get('http://example.com/');
+        $request = $this->getHttpClient()->createRequest('GET', 'http://example.com/');
         
         $webResourceService = $this->getWebResourceServiceWithContentTypeMap();        
         $webResourceService->getConfiguration()->disableAllowUnknownResourceTypes();

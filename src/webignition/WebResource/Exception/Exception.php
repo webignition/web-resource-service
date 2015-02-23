@@ -1,30 +1,33 @@
 <?php
 
 namespace webignition\WebResource\Exception;
+
+use GuzzleHttp\Message\ResponseInterface as HttpResponse;
+use GuzzleHttp\Message\RequestInterface as HttpRequest;
 use \Exception as BaseException;
 
 class Exception extends BaseException {    
     
     /**
      *
-     * @var \Guzzle\Http\Message\Request
+     * @var HttpResponse
      */
     private $response;
     
     
     /**
      *
-     * @var \Guzzle\Http\Message\Response
+     * @var HttpRequest
      */
     private $request;
     
     
     /**
      * 
-     * @param \Guzzle\Http\Message\Response $response
-     * @param \Guzzle\Http\Message\Request $request
+     * @param HttpResponse $response
+     * @param HttpRequest $request
      */
-    public function __construct(\Guzzle\Http\Message\Response $response, \Guzzle\Http\Message\Request $request = null) {
+    public function __construct(HttpResponse $response, HttpRequest $request = null) {
         $this->response = $response;
         $this->request = $request;
         
@@ -34,7 +37,7 @@ class Exception extends BaseException {
     
     /**
      * 
-     * @return \Guzzle\Http\Message\Response
+     * @return HttpResponse
      */
     public function getResponse() {
         return $this->response;
@@ -42,7 +45,7 @@ class Exception extends BaseException {
     
     /**
      * 
-     * @return \Guzzle\Http\Message\Request
+     * @return HttpRequest
      */
     public function getRequest() {
         return $this->request;

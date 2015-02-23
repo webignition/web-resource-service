@@ -1,6 +1,6 @@
 <?php
 
-namespace webignition\Tests\WebResource\Service;
+namespace webignition\Tests\WebResource\Service\Get;
 
 use webignition\Tests\WebResource\Service\BaseTest;
 
@@ -13,7 +13,7 @@ class HttpServerErrorTest extends BaseTest {
         
         $this->setExpectedException('webignition\WebResource\Exception\Exception');
         
-        $request = $this->getHttpClient()->get('http://example.com/');
+        $request = $this->getHttpClient()->createRequest('GET', 'http://example.com/');
         $this->getDefaultWebResourceService()->get($request);
     } 
     
@@ -23,7 +23,7 @@ class HttpServerErrorTest extends BaseTest {
             '500.httpresponse'
         ))));
         
-        $request = $this->getHttpClient()->get('http://example.com/');
+        $request = $this->getHttpClient()->createRequest('GET', 'http://example.com/');
         
         /* @var $webResourceException \webignition\WebResource\Exception\Exception */
         $webResourceException = null;        

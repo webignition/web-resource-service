@@ -2,16 +2,19 @@
 
 namespace webignition\WebResource\Service;
 
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ServerException;
 use webignition\InternetMediaType\Parser\Parser as InternetMediaTypeParser;
 use webignition\WebResource\Exception\Exception as WebResourceException;
 use webignition\WebResource\Exception\InvalidContentTypeException;
-use webignition\WebResource\Service\Configuration;
+use GuzzleHttp\Message\ResponseInterface as HttpResponse;
+use GuzzleHttp\Message\RequestInterface as HttpRequest;
 
 class Service {
     
     /**
      *
-     * @var \webignition\WebResource\Service\Configuration 
+     * @var Configuration
      */
     private $configuration = null;
     
@@ -19,7 +22,7 @@ class Service {
     /**
      * 
      * @param array $configurationValues
-     * @return \webignition\WebResource\Service\Service
+     * @return Service
      */
     public function createConfiguration($configurationValues) {
         $configuration = new Configuration();        
@@ -51,8 +54,8 @@ class Service {
     
     /**
      * 
-     * @param \webignition\WebResource\Service\Configuration $configuration
-     * @return \webignition\WebResource\Service\Service
+     * @param Configuration $configuration
+     * @return Service
      */
     public function setConfiguration(\webignition\WebResource\Service\Configuration $configuration) {
         $this->configuration = $configuration;
@@ -62,7 +65,7 @@ class Service {
     
     /**
      * 
-     * @return \webignition\WebResource\Service\Configuration
+     * @return Configuration
      */
     public function getConfiguration() {
         if (is_null($this->configuration)) {
@@ -71,25 +74,25 @@ class Service {
         
         return $this->configuration;
     }
-    
-    
-    
+
+
     /**
-     *
-     * @param \Guzzle\Http\Message\Request $request
-     * @return \webignition\WebResource\WebResource 
+     * @param HttpRequest $request
+     * @return \webignition\WebResource\WebResource
+     * @throws \webignition\WebResource\Exception\InvalidContentTypeException
+     * @throws \webignition\WebResource\Exception\Exception
      */
-    public function get(\Guzzle\Http\Message\Request $request) {
+    public function get(HttpRequest $request) {
         try {
-            $response = $request->send();
-        } catch (\Guzzle\Http\Exception\ServerErrorResponseException $serverErrorResponseException) {                        
+            $response = $this->getConfiguration()->getHttpClient()->send($request);
+        } catch (ServerException $serverErrorResponseException) {
             if ($this->getConfiguration()->getRetryWithUrlEncodingDisabled() && !$this->getConfiguration()->getHasRetriedWithUrlEncodingDisabled()) {
                 $this->getConfiguration()->setHasRetriedWithUrlEncodingDisabled(true);
                 return $this->get($this->deEncodeRequestUrl($request));
             }
             
             $response = $serverErrorResponseException->getResponse();
-        } catch (\Guzzle\Http\Exception\ClientErrorResponseException $clientErrorResponseException) {
+        } catch (ClientException $clientErrorResponseException) {
             if ($this->getConfiguration()->getRetryWithUrlEncodingDisabled() && !$this->getConfiguration()->getHasRetriedWithUrlEncodingDisabled()) {
                 $this->getConfiguration()->setHasRetriedWithUrlEncodingDisabled(true);
                 return $this->get($this->deEncodeRequestUrl($request));
@@ -101,19 +104,22 @@ class Service {
         if ($this->getConfiguration()->getHasRetriedWithUrlEncodingDisabled()) {
             $this->getConfiguration()->setHasRetriedWithUrlEncodingDisabled(false);
         }
-        
-        if ($response->isInformational()) {
+
+
+        // Informational?
+        if ($this->isInformationalResponse($response)) {
             // Interesting to see what makes this happen
             throw new WebResourceException($response, $request);
         }
-        
-        if ($response->isRedirect()) {
+
+        // Redirect?
+        if ($this->isRedirectResponse($response)) {
             // Shouldn't happen, HTTP client should have the redirect handler
             // enabled, redirects should be followed            
             throw new WebResourceException($response, $request);
         }
         
-        if ($response->isClientError() || $response->isServerError()) {
+        if ($this->isErrorResponse($response)) {
             throw new WebResourceException($response, $request); 
         }
         
@@ -129,10 +135,10 @@ class Service {
     
     /**
      * 
-     * @param \Guzzle\Http\Message\Response $response
+     * @param HttpResponse $response
      * @return \webignition\WebResource\WebResource
      */
-    public function create(\Guzzle\Http\Message\Response $response) {        
+    public function create(HttpResponse $response) {
         $webResourceClassName = $this->getConfiguration()->getWebResourceClassName($this->getContentTypeFromResponse($response)->getTypeSubtypeString());
         
         $resource = new $webResourceClassName;                
@@ -145,33 +151,71 @@ class Service {
     
     /**
      * 
-     * @param \Guzzle\Http\Message\Response $response
+     * @param HttpResponse $response
      * @return \webignition\InternetMediaType\InternetMediaType
      */
-    private function getContentTypeFromResponse(\Guzzle\Http\Message\Response $response) {
+    private function getContentTypeFromResponse(HttpResponse $response) {
         $mediaTypeParser = new InternetMediaTypeParser();
         $mediaTypeParser->setAttemptToRecoverFromInvalidInternalCharacter(true);
         $mediaTypeParser->setIgnoreInvalidAttributes(true);
-        return $mediaTypeParser->parse($response->getContentType()); 
+        return $mediaTypeParser->parse($response->getHeader('content-type'));
     }
     
     
     /**
      * 
-     * @param \Guzzle\Http\Message\Request $request
-     * @return \Guzzle\Http\Message\Request
+     * @param HttpRequest $request
+     * @return HttpRequest
      */
-    private function deEncodeRequestUrl(\Guzzle\Http\Message\Request $request) {
-        // Intentionally not a one-liner to make the process easier to understand
-        $requestUrl = $request->getUrl(true);
-        $requestQuery = $requestUrl->getQuery(true);
-        $requestQuery->useUrlEncoding(false);
-
-        $requestUrl->setQuery($requestQuery);
-        $request->setUrl($requestUrl);
-
+    private function deEncodeRequestUrl(HttpRequest $request) {
+        $request->getQuery()->setEncodingType(false);
         return $request;
-      
     }
+
+
+    /**
+     * @param HttpResponse $response
+     * @return bool
+     */
+    private function isInformationalResponse(HttpResponse $response) {
+        return $response->getStatusCode() < 200;
+    }
+
+
+    /**
+     * @param HttpResponse $response
+     * @return bool
+     */
+    private function isRedirectResponse(HttpResponse $response) {
+        return $response->getStatusCode() >= 300 && $response->getStatusCode() < 400;
+    }
+
+
+    /**
+     * @param HttpResponse $response
+     * @return bool
+     */
+    private function isClientErrorResponse(HttpResponse $response) {
+        return $response->getStatusCode() >= 400 && $response->getStatusCode() < 500;
+    }
+
+
+    /**
+     * @param HttpResponse $response
+     * @return bool
+     */
+    private function isServerErrorResponse(HttpResponse $response) {
+        return $response->getStatusCode() >= 500 && $response->getStatusCode() < 600;
+    }
+
+
+    /**
+     * @param HttpResponse $response
+     * @return bool
+     */
+    private function isErrorResponse(HttpResponse $response) {
+        return $this->isClientErrorResponse($response) || $this->isServerErrorResponse($response);
+    }
+
     
 }

@@ -3,7 +3,9 @@
 namespace webignition\Tests\WebResource\Service;
 
 use webignition\WebResource\Service\Service as WebResourceService;
-use Guzzle\Http\Client as HttpClient;
+use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Message\MessageFactory as HttpMessageFactory;
+use GuzzleHttp\Message\ResponseInterface as HttpResponse;
 
 abstract class BaseTest extends \PHPUnit_Framework_TestCase {
     
@@ -17,7 +19,7 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase {
     
     /**
      *
-     * @var \Guzzle\Http\Client 
+     * @var HttpClient
      */
     private $httpClient = null;
 
@@ -54,18 +56,20 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase {
     }
     
     
-    protected function setHttpFixtures($fixtures) {        
-        $plugin = new \Guzzle\Plugin\Mock\MockPlugin();
-        
-        foreach ($fixtures as $fixture) {
-            if ($fixture instanceof \Exception) {
-                $plugin->addException($fixture);
-            } else {
-                $plugin->addResponse($fixture);
-            }
-        }
+    protected function setHttpFixtures($fixtures) {
+        $subscriber = new \GuzzleHttp\Subscriber\Mock($fixtures);
+
+//        $plugin = new \Guzzle\Plugin\Mock\MockPlugin();
+//
+//        foreach ($fixtures as $fixture) {
+//            if ($fixture instanceof \Exception) {
+//                $plugin->addException($fixture);
+//            } else {
+//                $plugin->addResponse($fixture);
+//            }
+//        }
          
-        $this->getHttpClient()->addSubscriber($plugin);              
+        $this->getHttpClient()->getEmitter()->attach($subscriber);
     }
     
     
@@ -101,7 +105,7 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase {
         foreach ($items as $item) {
             switch ($this->getHttpFixtureItemType($item)) {
                 case 'httpMessage':
-                    $fixtures[] = \Guzzle\Http\Message\Response::fromMessage($item);
+                    $fixtures[] = $this->getHttpResponseFromMessage($item);
                     break;
                 
                 case 'curlException':
@@ -147,7 +151,7 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase {
     
     /**
      * 
-     * @return \Guzzle\Http\Client
+     * @return HttpClient
      */
     protected function getHttpClient() {
         if (is_null($this->httpClient)) {
@@ -188,7 +192,20 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase {
     
     
     protected function getDefaultWebResourceService() {
-        return new WebResourceService();        
+        $service = new WebResourceService();
+        $service->getConfiguration()->setHttpClient($this->getHttpClient());
+
+        return $service;
+    }
+
+
+    /**
+     * @param $message
+     * @return HttpResponse
+     */
+    protected function getHttpResponseFromMessage($message) {
+        $factory = new HttpMessageFactory();
+        return $factory->fromMessage($message);
     }
     
 }

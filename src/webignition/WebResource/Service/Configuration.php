@@ -2,6 +2,8 @@
 
 namespace webignition\WebResource\Service;
 
+use GuzzleHttp\Client as HttpClient;
+
 class Configuration {
     
     
@@ -35,6 +37,33 @@ class Configuration {
      * @var boolean
      */
     private $hasTriedWithUrlEncodingDisabled = false;
+
+
+    /**
+     * @var HttpClient
+     */
+    private $httpClient = null;
+
+
+    public function __construct() {
+        $this->httpClient = new HttpClient();
+    }
+
+
+    /**
+     * @param HttpClient $httpClient
+     */
+    public function setHttpClient(HttpClient $httpClient) {
+        $this->httpClient = $httpClient;
+    }
+
+
+    /**
+     * @return HttpClient
+     */
+    public function getHttpClient() {
+        return $this->httpClient;
+    }
     
 
     /**

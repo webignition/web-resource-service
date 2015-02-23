@@ -1,6 +1,6 @@
 <?php
 
-namespace webignition\Tests\WebResource\Service;
+namespace webignition\Tests\WebResource\Service\Get;
 
 use webignition\Tests\WebResource\Service\BaseTest;
 
@@ -11,7 +11,8 @@ class ContentTypeTest extends BaseTest {
             'example.com.html.200.httpresponse'
         ))));
         
-        $request = $this->getHttpClient()->get('http://example.com/');
+        $request = $this->getHttpClient()->createRequest('GET', 'http://example.com/');
+
         $resource = $this->getDefaultWebResourceService()->get($request);
         
         $this->assertFalse($resource->getContentType()->hasParameter('charset'));
@@ -22,7 +23,7 @@ class ContentTypeTest extends BaseTest {
             'example.com.html.with-charset-in-content-type.200.httpresponse'
         ))));
         
-        $request = $this->getHttpClient()->get('http://example.com/');
+        $request = $this->getHttpClient()->createRequest('GET', 'http://example.com/');
         $resource = $this->getDefaultWebResourceService()->get($request);
         
         $this->assertTrue($resource->getContentType()->hasParameter('charset'));
@@ -34,7 +35,7 @@ class ContentTypeTest extends BaseTest {
             'example.com.html.with-charset-in-content-type.200.httpresponse'
         ))));
         
-        $request = $this->getHttpClient()->get('http://example.com/');
+        $request = $this->getHttpClient()->createRequest('GET', 'http://example.com/');
         $resource = $this->getDefaultWebResourceService()->get($request);
         
         $this->assertEquals('UTF-8', $resource->getContentType()->getParameter('charset')->getValue());

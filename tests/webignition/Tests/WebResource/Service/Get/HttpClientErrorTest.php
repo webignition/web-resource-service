@@ -1,6 +1,6 @@
 <?php
 
-namespace webignition\Tests\WebResource\Service;
+namespace webignition\Tests\WebResource\Service\Get;
 
 use webignition\Tests\WebResource\Service\BaseTest;
 
@@ -13,7 +13,7 @@ class HttpClientErrorTest extends BaseTest {
         
         $this->setExpectedException('\webignition\WebResource\Exception\Exception');
         
-        $request = $this->getHttpClient()->get('http://example.com/');
+        $request = $this->getHttpClient()->createRequest('GET', 'http://example.com/');
         $this->getDefaultWebResourceService()->get($request);
     } 
     
@@ -22,21 +22,21 @@ class HttpClientErrorTest extends BaseTest {
         $this->setHttpFixtures($this->buildHttpFixtureSet($this->getHttpFixtures($this->getCommonFixturesDataPath(), array(
             '404.httpresponse'
         ))));
-        
-        $request = $this->getHttpClient()->get('http://example.com/');
-        
+
+        $request = $this->getHttpClient()->createRequest('GET', 'http://example.com/');
+
         /* @var $webResourceException \webignition\WebResource\Exception\Exception */
-        $webResourceException = null;        
-        
+        $webResourceException = null;
+
         try {
             $this->getDefaultWebResourceService()->get($request);
         } catch (\webignition\WebResource\Exception\Exception $webResourceException) {
         }
-        
-        $this->assertInstanceOf('\webignition\WebResource\Exception\Exception', $webResourceException);        
+
+        $this->assertInstanceOf('\webignition\WebResource\Exception\Exception', $webResourceException);
         $this->assertEquals(404, $webResourceException->getResponse()->getStatusCode());
-        
-        
-    }      
+
+
+    }
     
 }
