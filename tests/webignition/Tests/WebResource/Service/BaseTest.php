@@ -57,19 +57,7 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase {
     
     
     protected function setHttpFixtures($fixtures) {
-        $subscriber = new \GuzzleHttp\Subscriber\Mock($fixtures);
-
-//        $plugin = new \Guzzle\Plugin\Mock\MockPlugin();
-//
-//        foreach ($fixtures as $fixture) {
-//            if ($fixture instanceof \Exception) {
-//                $plugin->addException($fixture);
-//            } else {
-//                $plugin->addResponse($fixture);
-//            }
-//        }
-         
-        $this->getHttpClient()->getEmitter()->attach($subscriber);
+        $this->getHttpClient()->getEmitter()->attach(new \GuzzleHttp\Subscriber\Mock($fixtures));
     }
     
     
@@ -159,23 +147,6 @@ abstract class BaseTest extends \PHPUnit_Framework_TestCase {
         }
         
         return $this->httpClient;
-    }
-    
-    
-    protected function enableBackoffPlugin() {
-        $this->getHttpClient()->addSubscriber($this->getBackoffPlugin());
-    }
-    
-    
-    /**
-     * 
-     * @return \Guzzle\Plugin\Backoff\BackoffPlugin
-     */
-    protected function getBackoffPlugin() {
-        return \Guzzle\Plugin\Backoff\BackoffPlugin::getExponentialBackoff(
-            3,
-            array(500, 503, 504)
-        );
     }
     
     
