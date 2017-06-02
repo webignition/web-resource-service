@@ -5,9 +5,22 @@
     "keywords": ["web", "resource", "service"],
     "homepage": "https://github.com/webignition/web-resource-service",
     "license": "MIT",
-
+    "autoload": {
+        "psr-4": {
+            "webignition\\WebResource\\": "src/",
+            "webignition\\Tests\\WebResource\\Service\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "./vendor/bin/phpunit --colors=always",
+        "cs": "./vendor/bin/phpcs src tests --colors --standard=PSR2",
+        "ci": [
+            "@composer cs",
+            "@composer test"
+        ]
+    },
     "require": {
-        "php": ">=5.4.0",
+        "php": ">=5.5.0",
         "guzzlehttp/guzzle":">=5.2.0,<5.3",
         "webignition/internet-media-type":">=0.4.4,<2.0",
         "webignition/web-resource-model":">=1.2.1,<2.0",
@@ -15,18 +28,9 @@
         "webignition/web-json-model":">=1.1,<2.0",
         "webignition/url":">=1.9.14,<2.0"
     },
-
-    "autoload": {
-        "psr-0": {
-            "webignition\\Tests": "tests/",
-            "": "src/"
-        }
-    },
-
     "require-dev": {
         "phpunit/phpunit": "~4.0"
     },
-    
     "minimum-stability":"dev",
     "prefer-stable":true
 }
