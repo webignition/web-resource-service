@@ -4,7 +4,9 @@ namespace webignition\Tests\WebResource\Service;
 
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Message\RequestInterface;
+use GuzzleHttp\Message\ResponseInterface;
 use GuzzleHttp\Subscriber\Mock as MockSubscriber;
+use Mockery\MockInterface;
 use webignition\WebResource\Exception\InvalidContentTypeException;
 use webignition\WebResource\Service\Configuration;
 use webignition\WebResource\Service\Service;
@@ -307,6 +309,52 @@ class ServiceTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @dataProvider createDataProvider
+     *
+     * @param Configuration $configuration
+     * @param ResponseInterface $response
+     * @param string $expectedWebResourceClassName
+     */
+    public function testCreateFoo(
+        Configuration $configuration,
+        ResponseInterface $response,
+        $expectedWebResourceClassName
+    ) {
+        $service = new Service();
+        $service->setConfiguration($configuration);
+        $response = $service->create($response);
+
+        $this->assertInstanceOf($expectedWebResourceClassName, $response);
+    }
+
+    /**
+     * @return array
+     */
+    public function createDataProvider()
+    {
+        return [
+            'unknown content type' => [
+                'configuration' => new Configuration(),
+                'response' => $this->createResponse(
+                    'text/plain'
+                ),
+                'expectedWebResourceClassName' => WebResource::class,
+            ],
+            'known content type' => [
+                'configuration' => new Configuration([
+                    Configuration::CONFIG_KEY_CONTENT_TYPE_WEB_RESOURCE_MAP => [
+                        'text/html' => WebPage::class,
+                    ],
+                ]),
+                'response' => $this->createResponse(
+                    'text/html'
+                ),
+                'expectedWebResourceClassName' => WebPage::class,
+            ],
+        ];
+    }
+
+    /**
      * @param string $method
      * @param string $url
      * @param array $options
@@ -324,5 +372,21 @@ class ServiceTest extends \PHPUnit_Framework_TestCase
             $url,
             $options
         );
+    }
+
+    /**
+     * @param string $contentType
+     *
+     * @return ResponseInterface|MockInterface
+     */
+    private function createResponse($contentType)
+    {
+        $response = \Mockery::mock(ResponseInterface::class);
+        $response
+            ->shouldReceive('getHeader')
+            ->with('content-type')
+            ->andReturn($contentType);
+
+        return $response;
     }
 }

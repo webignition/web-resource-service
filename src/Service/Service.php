@@ -108,7 +108,7 @@ class Service
      *
      * @return WebResource
      */
-    private function create(HttpResponse $response)
+    public function create(HttpResponse $response)
     {
         $configuration = $this->getConfiguration();
 
