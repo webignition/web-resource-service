@@ -2,220 +2,170 @@
 
 namespace webignition\WebResource\Service;
 
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\ServerException;
+use GuzzleHttp\Exception\BadResponseException;
+use webignition\InternetMediaType\InternetMediaType;
 use webignition\InternetMediaType\Parser\Parser as InternetMediaTypeParser;
 use webignition\WebResource\Exception\Exception as WebResourceException;
+use webignition\WebResource\Exception\Exception;
 use webignition\WebResource\Exception\InvalidContentTypeException;
 use GuzzleHttp\Message\ResponseInterface as HttpResponse;
 use GuzzleHttp\Message\RequestInterface as HttpRequest;
+use webignition\WebResource\WebResource;
 
-class Service {
-    
+class Service
+{
     /**
-     *
      * @var Configuration
      */
     private $configuration = null;
-    
-    
+
     /**
-     * 
-     * @param array $configurationValues
-     * @return Service
+     * @var bool
      */
-    public function createConfiguration($configurationValues) {
-        $configuration = new Configuration();        
-        
-        if (isset($configurationValues['allow-uknown-resource-types'])) {
-            if ($configurationValues['allow-uknown-resource-types']) {
-                $configuration->enableAllowUnknownResourceTypes();
-            } else {
-                $configuration->disableAllowUnknownResourceTypes();
-            }
-        }
-        
-        if (isset($configurationValues['retry-with-url-encoding-disabled'])) {
-            if ($configurationValues['retry-with-url-encoding-disabled']) {
-                $configuration->enableRetryWithUrlEncodingDisabled();
-            } else {
-                $configuration->disableRetryWithUrlEncodingDisabled();
-            }
-        }
-        
-        if (isset($configurationValues['content-type-web-resource-map'])) {
-            $configuration->setContentTypeWebResourceMap($configurationValues['content-type-web-resource-map']);
-        }
-        
-        $this->setConfiguration($configuration);
-        return $this;       
-    }
-    
-    
+    private $hasBadResponse = false;
+
     /**
-     * 
      * @param Configuration $configuration
-     * @return Service
      */
-    public function setConfiguration(\webignition\WebResource\Service\Configuration $configuration) {
+    public function setConfiguration(Configuration $configuration)
+    {
         $this->configuration = $configuration;
-        return $this;
     }
-    
-    
+
     /**
-     * 
      * @return Configuration
      */
-    public function getConfiguration() {
+    public function getConfiguration()
+    {
         if (is_null($this->configuration)) {
             $this->configuration = new Configuration();
         }
-        
+
         return $this->configuration;
     }
 
-
     /**
      * @param HttpRequest $request
-     * @return \webignition\WebResource\WebResource
-     * @throws \webignition\WebResource\Exception\InvalidContentTypeException
-     * @throws \webignition\WebResource\Exception\Exception
+     *
+     * @throws InvalidContentTypeException
+     * @throws Exception
+     *
+     * @return WebResource
      */
-    public function get(HttpRequest $request) {
+    public function get(HttpRequest $request)
+    {
+        $configuration = $this->getConfiguration();
+        $this->hasBadResponse = false;
+
         try {
-            $response = $this->getConfiguration()->getHttpClient()->send($request);
-        } catch (ServerException $serverErrorResponseException) {
-            if ($this->getConfiguration()->getRetryWithUrlEncodingDisabled() && !$this->getConfiguration()->getHasRetriedWithUrlEncodingDisabled()) {
-                $this->getConfiguration()->setHasRetriedWithUrlEncodingDisabled(true);
+            $response = $configuration->getHttpClient()->send($request);
+        } catch (BadResponseException $badResponseException) {
+            $isRetryWithUrlEncodingDisabled = $configuration->getRetryWithUrlEncodingDisabled();
+            $hasTriedWithUrlEncodingDisabled = $configuration->getHasRetriedWithUrlEncodingDisabled();
+
+            if ($isRetryWithUrlEncodingDisabled && !$hasTriedWithUrlEncodingDisabled) {
+                $configuration->setHasRetriedWithUrlEncodingDisabled(true);
                 return $this->get($this->deEncodeRequestUrl($request));
             }
-            
-            $response = $serverErrorResponseException->getResponse();
-        } catch (ClientException $clientErrorResponseException) {
-            if ($this->getConfiguration()->getRetryWithUrlEncodingDisabled() && !$this->getConfiguration()->getHasRetriedWithUrlEncodingDisabled()) {
-                $this->getConfiguration()->setHasRetriedWithUrlEncodingDisabled(true);
-                return $this->get($this->deEncodeRequestUrl($request));
-            }
-            
-            $response = $clientErrorResponseException->getResponse();
-        }
-        
-        if ($this->getConfiguration()->getHasRetriedWithUrlEncodingDisabled()) {
-            $this->getConfiguration()->setHasRetriedWithUrlEncodingDisabled(false);
+
+            $response = $badResponseException->getResponse();
+            $this->hasBadResponse = true;
         }
 
+        if ($configuration->getHasRetriedWithUrlEncodingDisabled()) {
+            $configuration->setHasRetriedWithUrlEncodingDisabled(false);
+        }
 
-        // Informational?
-        if ($this->isInformationalResponse($response)) {
-            // Interesting to see what makes this happen
+        if ($this->hasBadResponse) {
             throw new WebResourceException($response, $request);
         }
 
-        // Redirect?
+        if ($this->isInformationalResponse($response)) {
+            throw new WebResourceException($response, $request);
+        }
+
         if ($this->isRedirectResponse($response)) {
             // Shouldn't happen, HTTP client should have the redirect handler
-            // enabled, redirects should be followed            
+            // enabled, redirects should be followed
             throw new WebResourceException($response, $request);
         }
-        
-        if ($this->isErrorResponse($response)) {
-            throw new WebResourceException($response, $request); 
-        }
-        
+
         $contentType = $this->getContentTypeFromResponse($response);
-        
-        if (!$this->getConfiguration()->hasMappedWebResourceClassName($contentType->getTypeSubtypeString()) && $this->getConfiguration()->getAllowUnknownResourceTypes() === false) {
+
+        $hasMappedWebResourceClassName = $configuration->hasMappedWebResourceClassName(
+            $contentType->getTypeSubtypeString()
+        );
+
+        if (!$hasMappedWebResourceClassName && !$configuration->getAllowUnknownResourceTypes()) {
             throw new InvalidContentTypeException($contentType, $response, $request);
         }
-        
+
         return $this->create($response);
     }
-    
-    
+
     /**
-     * 
      * @param HttpResponse $response
-     * @return \webignition\WebResource\WebResource
+     *
+     * @return WebResource
      */
-    public function create(HttpResponse $response) {
-        $webResourceClassName = $this->getConfiguration()->getWebResourceClassName($this->getContentTypeFromResponse($response)->getTypeSubtypeString());
-        
-        $resource = new $webResourceClassName;                
+    private function create(HttpResponse $response)
+    {
+        $configuration = $this->getConfiguration();
+
+        $webResourceClassName = $configuration->getWebResourceClassName(
+            $this->getContentTypeFromResponse($response)->getTypeSubtypeString()
+        );
+
+        /* @var $resource WebResource */
+        $resource = new $webResourceClassName;
         $resource->setHttpResponse($response);
-        
+
         return $resource;
     }
-    
-    
-    
+
     /**
-     * 
      * @param HttpResponse $response
-     * @return \webignition\InternetMediaType\InternetMediaType
+     *
+     * @return InternetMediaType
      */
-    private function getContentTypeFromResponse(HttpResponse $response) {
+    private function getContentTypeFromResponse(HttpResponse $response)
+    {
         $mediaTypeParser = new InternetMediaTypeParser();
         $mediaTypeParser->setAttemptToRecoverFromInvalidInternalCharacter(true);
         $mediaTypeParser->setIgnoreInvalidAttributes(true);
+
         return $mediaTypeParser->parse($response->getHeader('content-type'));
     }
-    
-    
+
     /**
-     * 
      * @param HttpRequest $request
+     *
      * @return HttpRequest
      */
-    private function deEncodeRequestUrl(HttpRequest $request) {
+    private function deEncodeRequestUrl(HttpRequest $request)
+    {
         $request->getQuery()->setEncodingType(false);
+
         return $request;
     }
 
-
     /**
      * @param HttpResponse $response
+     *
      * @return bool
      */
-    private function isInformationalResponse(HttpResponse $response) {
+    private function isInformationalResponse(HttpResponse $response)
+    {
         return $response->getStatusCode() < 200;
     }
 
-
     /**
      * @param HttpResponse $response
+     *
      * @return bool
      */
-    private function isRedirectResponse(HttpResponse $response) {
+    private function isRedirectResponse(HttpResponse $response)
+    {
         return $response->getStatusCode() >= 300 && $response->getStatusCode() < 400;
     }
-
-
-    /**
-     * @param HttpResponse $response
-     * @return bool
-     */
-    private function isClientErrorResponse(HttpResponse $response) {
-        return $response->getStatusCode() >= 400 && $response->getStatusCode() < 500;
-    }
-
-
-    /**
-     * @param HttpResponse $response
-     * @return bool
-     */
-    private function isServerErrorResponse(HttpResponse $response) {
-        return $response->getStatusCode() >= 500 && $response->getStatusCode() < 600;
-    }
-
-
-    /**
-     * @param HttpResponse $response
-     * @return bool
-     */
-    private function isErrorResponse(HttpResponse $response) {
-        return $this->isClientErrorResponse($response) || $this->isServerErrorResponse($response);
-    }
-
-    
 }
