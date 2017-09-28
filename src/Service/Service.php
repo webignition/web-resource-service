@@ -51,6 +51,13 @@ class Service
     {
         $configuration = $this->getConfiguration();
 
+        if (!$configuration->getAllowUnknownResourceTypes()) {
+            $headRequest = clone $request;
+            $headRequest->setMethod('HEAD');
+
+            $this->preVerifyContentType($headRequest);
+        }
+
         try {
             $response = $configuration->getHttpClient()->send($request);
         } catch (BadResponseException $badResponseException) {
@@ -90,6 +97,49 @@ class Service
         }
 
         return $this->create($response);
+    }
+
+    /**
+     * @param HttpRequest $request
+     * @param bool|null $retryWithUrlEncodingDisabled
+     *
+     * @return bool
+     * @throws Exception
+     * @throws InvalidContentTypeException
+     */
+    private function preVerifyContentType(HttpRequest $request, $retryWithUrlEncodingDisabled = null)
+    {
+        $configuration = $this->getConfiguration();
+
+        try {
+            $response = $configuration->getHttpClient()->send($request);
+        } catch (BadResponseException $badResponseException) {
+            if (is_null($retryWithUrlEncodingDisabled) && $configuration->getRetryWithUrlEncodingDisabled()) {
+                $retryWithUrlEncodingDisabled = true;
+            }
+
+            if ($retryWithUrlEncodingDisabled) {
+                return $this->preVerifyContentType($this->deEncodeRequestUrl($request), false);
+            }
+
+            $response = $badResponseException->getResponse();
+        }
+
+        if (!$this->isSuccessResponse($response)) {
+            return null;
+        }
+
+        $contentType = $this->getContentTypeFromResponse($response);
+
+        $hasMappedWebResourceClassName = $configuration->hasMappedWebResourceClassName(
+            $contentType->getTypeSubtypeString()
+        );
+
+        if (!$hasMappedWebResourceClassName && !$configuration->getAllowUnknownResourceTypes()) {
+            throw new InvalidContentTypeException($contentType, $response, $request);
+        }
+
+        return true;
     }
 
     /**
@@ -166,5 +216,15 @@ class Service
     private function isBadResponse(HttpResponse $response)
     {
         return $response->getStatusCode() >= 400;
+    }
+
+    /**
+     * @param HttpResponse $response
+     *
+     * @return bool
+     */
+    private function isSuccessResponse(HttpResponse $response)
+    {
+        return $response->getStatusCode() >= 200 && $response->getStatusCode() < 300;
     }
 }
