@@ -72,18 +72,6 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    public function testEnableDisableRetryWithUrlEncodingDisabled()
-    {
-        $configuration = new Configuration();
-        $this->assertFalse($configuration->getRetryWithUrlEncodingDisabled());
-
-        $configuration->enableRetryWithUrlEncodingDisabled();
-        $this->assertTrue($configuration->getRetryWithUrlEncodingDisabled());
-
-        $configuration->disableRetryWithUrlEncodingDisabled();
-        $this->assertFalse($configuration->getRetryWithUrlEncodingDisabled());
-    }
-
     /**
      * @dataProvider hasMappedWebResourceClassNameDataProvider
      *
@@ -182,6 +170,74 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 ],
                 'contentType' => 'foo/bar',
                 'expectedClassName' => 'foobar',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider createFromCurrentDataProvider
+     * @param array $startingConfigurationValues
+     * @param array $newConfigurationValues
+     * @param HttpClient|null $expectedHttpClient
+     * @param array $expectedContentTypeWebResourceMap
+     * @param bool $expectedAllowUnknownResourceTypes
+     * @param bool $expectedRetryWithUrlEncodingDisabled
+     */
+    public function testCreateFromCurrent(
+        $startingConfigurationValues,
+        $newConfigurationValues,
+        $expectedHttpClient,
+        array $expectedContentTypeWebResourceMap,
+        $expectedAllowUnknownResourceTypes,
+        $expectedRetryWithUrlEncodingDisabled
+    ) {
+        $configuration = new Configuration($startingConfigurationValues);
+        $newConfiguration = $configuration->createFromCurrent($newConfigurationValues);
+
+        $this->assertEquals($expectedContentTypeWebResourceMap, $newConfiguration->getContentTypeWebResourceMap());
+        $this->assertEquals($expectedAllowUnknownResourceTypes, $newConfiguration->getAllowUnknownResourceTypes());
+        $this->assertEquals(
+            $expectedRetryWithUrlEncodingDisabled,
+            $newConfiguration->getRetryWithUrlEncodingDisabled()
+        );
+
+        $httpClient = $newConfiguration->getHttpClient();
+        $this->assertInstanceOf(HttpClient::class, $httpClient);
+
+        if (!empty($expectedHttpClient)) {
+            $this->assertEquals($expectedHttpClient, $httpClient);
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function createFromCurrentDataProvider()
+    {
+        return [
+            'default to default' => [
+                'startingConfigurationValues' => [],
+                'newConfigurationValues' => [],
+                'expectedHttpClient' => null,
+                'expectedContentTypeWebResourceMap' => [],
+                'expectedAllowUnknownResourceTypes' => true,
+                'expectedRetryWithUrlEncodingDisabled' => false,
+            ],
+            'change all' => [
+                'startingConfigurationValues' => [],
+                'newConfigurationValues' => [
+                    Configuration::CONFIG_KEY_CONTENT_TYPE_WEB_RESOURCE_MAP => [
+                        'foo' => 'bar',
+                    ],
+                    Configuration::CONFIG_ALLOW_UNKNOWN_RESOURCE_TYPES => false,
+                    Configuration::CONFIG_RETRY_WITH_URL_ENCODING_DISABLED => true,
+                ],
+                'expectedHttpClient' => null,
+                'expectedContentTypeWebResourceMap' => [
+                    'foo' => 'bar',
+                ],
+                'expectedAllowUnknownResourceTypes' => false,
+                'expectedRetryWithUrlEncodingDisabled' => true,
             ],
         ];
     }
