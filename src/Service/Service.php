@@ -20,11 +20,6 @@ class Service
     private $configuration = null;
 
     /**
-     * @var bool
-     */
-    private $hasBadResponse = false;
-
-    /**
      * @param Configuration $configuration
      */
     public function setConfiguration(Configuration $configuration)
@@ -55,7 +50,6 @@ class Service
     public function get(HttpRequest $request)
     {
         $configuration = $this->getConfiguration();
-        $this->hasBadResponse = false;
 
         try {
             $response = $configuration->getHttpClient()->send($request);
@@ -69,14 +63,13 @@ class Service
             }
 
             $response = $badResponseException->getResponse();
-            $this->hasBadResponse = true;
         }
 
         if ($configuration->getHasRetriedWithUrlEncodingDisabled()) {
             $configuration->setHasRetriedWithUrlEncodingDisabled(false);
         }
 
-        if ($this->hasBadResponse) {
+        if ($this->isBadResponse($response)) {
             throw new WebResourceException($response, $request);
         }
 
@@ -167,5 +160,15 @@ class Service
     private function isRedirectResponse(HttpResponse $response)
     {
         return $response->getStatusCode() >= 300 && $response->getStatusCode() < 400;
+    }
+
+    /**
+     * @param HttpResponse $response
+     *
+     * @return bool
+     */
+    private function isBadResponse(HttpResponse $response)
+    {
+        return $response->getStatusCode() >= 400;
     }
 }
