@@ -315,7 +315,7 @@ class ServiceTest extends \PHPUnit_Framework_TestCase
      * @param ResponseInterface $response
      * @param string $expectedWebResourceClassName
      */
-    public function testCreateFoo(
+    public function testCreate(
         Configuration $configuration,
         ResponseInterface $response,
         $expectedWebResourceClassName
