@@ -185,16 +185,4 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
             ],
         ];
     }
-
-    public function testGetSetHasTriedWithUrlEncodingDisabled()
-    {
-        $configuration = new Configuration();
-        $this->assertFalse($configuration->getHasRetriedWithUrlEncodingDisabled());
-
-        $configuration->setHasRetriedWithUrlEncodingDisabled(true);
-        $this->assertTrue($configuration->getHasRetriedWithUrlEncodingDisabled());
-
-        $configuration->setHasRetriedWithUrlEncodingDisabled(false);
-        $this->assertFalse($configuration->getHasRetriedWithUrlEncodingDisabled());
-    }
 }

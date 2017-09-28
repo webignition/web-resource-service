@@ -20,11 +20,6 @@ class Service
     private $configuration = null;
 
     /**
-     * @var bool
-     */
-    private $hasBadResponse = false;
-
-    /**
      * @param Configuration $configuration
      */
     public function setConfiguration(Configuration $configuration)
@@ -46,37 +41,38 @@ class Service
 
     /**
      * @param HttpRequest $request
-     *
-     * @throws InvalidContentTypeException
-     * @throws Exception
+     * @param bool|null $retryWithUrlEncodingDisabled
      *
      * @return WebResource
+     * @throws Exception
+     * @throws InvalidContentTypeException
      */
-    public function get(HttpRequest $request)
+    public function get(HttpRequest $request, $retryWithUrlEncodingDisabled = null)
     {
         $configuration = $this->getConfiguration();
-        $this->hasBadResponse = false;
+
+        if (!$configuration->getAllowUnknownResourceTypes()) {
+            $headRequest = clone $request;
+            $headRequest->setMethod('HEAD');
+
+            $this->preVerifyContentType($headRequest);
+        }
 
         try {
             $response = $configuration->getHttpClient()->send($request);
         } catch (BadResponseException $badResponseException) {
-            $isRetryWithUrlEncodingDisabled = $configuration->getRetryWithUrlEncodingDisabled();
-            $hasTriedWithUrlEncodingDisabled = $configuration->getHasRetriedWithUrlEncodingDisabled();
+            if (is_null($retryWithUrlEncodingDisabled) && $configuration->getRetryWithUrlEncodingDisabled()) {
+                $retryWithUrlEncodingDisabled = true;
+            }
 
-            if ($isRetryWithUrlEncodingDisabled && !$hasTriedWithUrlEncodingDisabled) {
-                $configuration->setHasRetriedWithUrlEncodingDisabled(true);
-                return $this->get($this->deEncodeRequestUrl($request));
+            if ($retryWithUrlEncodingDisabled) {
+                return $this->get($this->deEncodeRequestUrl($request), false);
             }
 
             $response = $badResponseException->getResponse();
-            $this->hasBadResponse = true;
         }
 
-        if ($configuration->getHasRetriedWithUrlEncodingDisabled()) {
-            $configuration->setHasRetriedWithUrlEncodingDisabled(false);
-        }
-
-        if ($this->hasBadResponse) {
+        if ($this->isBadResponse($response)) {
             throw new WebResourceException($response, $request);
         }
 
@@ -101,6 +97,49 @@ class Service
         }
 
         return $this->create($response);
+    }
+
+    /**
+     * @param HttpRequest $request
+     * @param bool|null $retryWithUrlEncodingDisabled
+     *
+     * @return bool
+     * @throws Exception
+     * @throws InvalidContentTypeException
+     */
+    private function preVerifyContentType(HttpRequest $request, $retryWithUrlEncodingDisabled = null)
+    {
+        $configuration = $this->getConfiguration();
+
+        try {
+            $response = $configuration->getHttpClient()->send($request);
+        } catch (BadResponseException $badResponseException) {
+            if (is_null($retryWithUrlEncodingDisabled) && $configuration->getRetryWithUrlEncodingDisabled()) {
+                $retryWithUrlEncodingDisabled = true;
+            }
+
+            if ($retryWithUrlEncodingDisabled) {
+                return $this->preVerifyContentType($this->deEncodeRequestUrl($request), false);
+            }
+
+            $response = $badResponseException->getResponse();
+        }
+
+        if (!$this->isSuccessResponse($response)) {
+            return null;
+        }
+
+        $contentType = $this->getContentTypeFromResponse($response);
+
+        $hasMappedWebResourceClassName = $configuration->hasMappedWebResourceClassName(
+            $contentType->getTypeSubtypeString()
+        );
+
+        if (!$hasMappedWebResourceClassName && !$configuration->getAllowUnknownResourceTypes()) {
+            throw new InvalidContentTypeException($contentType, $response, $request);
+        }
+
+        return true;
     }
 
     /**
@@ -167,5 +206,25 @@ class Service
     private function isRedirectResponse(HttpResponse $response)
     {
         return $response->getStatusCode() >= 300 && $response->getStatusCode() < 400;
+    }
+
+    /**
+     * @param HttpResponse $response
+     *
+     * @return bool
+     */
+    private function isBadResponse(HttpResponse $response)
+    {
+        return $response->getStatusCode() >= 400;
+    }
+
+    /**
+     * @param HttpResponse $response
+     *
+     * @return bool
+     */
+    private function isSuccessResponse(HttpResponse $response)
+    {
+        return $response->getStatusCode() >= 200 && $response->getStatusCode() < 300;
     }
 }

@@ -32,11 +32,6 @@ class Configuration
     private $retryWithUrlEncodingDisabled = false;
 
     /**
-     * @var boolean
-     */
-    private $hasTriedWithUrlEncodingDisabled = false;
-
-    /**
      * @var HttpClient
      */
     private $httpClient = null;
@@ -127,22 +122,5 @@ class Configuration
         return ($this->hasMappedWebResourceClassName($contentType))
             ? $this->contentTypeWebResourceMap[(string)$contentType]
             : self::DEFAULT_WEB_RESOURCE_MODEL;
-    }
-
-    /**
-     * @param boolean $hasRetried
-     */
-    public function setHasRetriedWithUrlEncodingDisabled($hasRetried)
-    {
-        $this->hasTriedWithUrlEncodingDisabled = $hasRetried;
-    }
-
-    /**
-     *
-     * @return boolean
-     */
-    public function getHasRetriedWithUrlEncodingDisabled()
-    {
-        return $this->hasTriedWithUrlEncodingDisabled;
     }
 }

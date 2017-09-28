@@ -85,6 +85,27 @@ class ServiceTest extends \PHPUnit_Framework_TestCase
                 'expectedExceptionMessage' => 'Not Found',
                 'expectedExceptionCode' => 404,
             ],
+            'http 404 with content-type pre-verification' => [
+                'configuration' => new Configuration([
+                    Configuration::CONFIG_RETRY_WITH_URL_ENCODING_DISABLED => true,
+                    Configuration::CONFIG_ALLOW_UNKNOWN_RESOURCE_TYPES => false,
+                ]),
+                'createRequestArgs' => [
+                    'method' => 'GET',
+                    'url' => 'http://example.com/',
+                    'options' => [],
+                ],
+                'responseFixtures' => [
+                    'HTTP/1.1 404 Not Found',
+                    'HTTP/1.1 404 Not Found',
+                    'HTTP/1.1 404 Not Found',
+                    'HTTP/1.1 404 Not Found',
+                    'HTTP/1.1 404 Not Found',
+                    'HTTP/1.1 404 Not Found',
+                ],
+                'expectedExceptionMessage' => 'Not Found',
+                'expectedExceptionCode' => 404,
+            ],
             'http 500' => [
                 'configuration' => new Configuration(),
                 'createRequestArgs' => [
@@ -175,7 +196,7 @@ class ServiceTest extends \PHPUnit_Framework_TestCase
     public function getInvalidContentTypeDataProvider()
     {
         return [
-            'no allowed content types' => [
+            'no allowed content types; fails pre-verification' => [
                 'configuration' => new Configuration([
                     Configuration::CONFIG_ALLOW_UNKNOWN_RESOURCE_TYPES => false,
                     Configuration::CONFIG_KEY_CONTENT_TYPE_WEB_RESOURCE_MAP => [],
@@ -192,12 +213,11 @@ class ServiceTest extends \PHPUnit_Framework_TestCase
                 'expectedExceptionCode' => 200,
                 'expectedExceptionResponseContentType' => '',
             ],
-            'disallowed content type' => [
+            'disallowed content type; fails pre-verification' => [
                 'configuration' => new Configuration([
                     Configuration::CONFIG_ALLOW_UNKNOWN_RESOURCE_TYPES => false,
                     Configuration::CONFIG_KEY_CONTENT_TYPE_WEB_RESOURCE_MAP => [
                         'text/html' => WebPage::class,
-
                     ],
                 ]),
                 'createRequestArgs' => [
@@ -211,6 +231,45 @@ class ServiceTest extends \PHPUnit_Framework_TestCase
                 'expectedExceptionMessage' => 'OK',
                 'expectedExceptionCode' => 200,
                 'expectedExceptionResponseContentType' => 'text/plain',
+            ],
+            'disallowed content type; retry with url encoding disabled; fails pre-verification' => [
+                'configuration' => new Configuration([
+                    Configuration::CONFIG_ALLOW_UNKNOWN_RESOURCE_TYPES => false,
+                    Configuration::CONFIG_KEY_CONTENT_TYPE_WEB_RESOURCE_MAP => [
+                        'text/html' => WebPage::class,
+                    ],
+                    Configuration::CONFIG_RETRY_WITH_URL_ENCODING_DISABLED => true,
+                ]),
+                'createRequestArgs' => [
+                    'method' => 'GET',
+                    'url' => 'http://example.com/',
+                    'options' => [],
+                ],
+                'responseFixtures' => [
+                    "HTTP/1.1 500",
+                    "HTTP/1.1 200 OK\nContent-type: text/plain",
+                ],
+                'expectedExceptionMessage' => 'OK',
+                'expectedExceptionCode' => 200,
+                'expectedExceptionResponseContentType' => 'text/plain',
+            ],
+            'no allowed content types; fails post-verification' => [
+                'configuration' => new Configuration([
+                    Configuration::CONFIG_ALLOW_UNKNOWN_RESOURCE_TYPES => false,
+                    Configuration::CONFIG_KEY_CONTENT_TYPE_WEB_RESOURCE_MAP => [],
+                ]),
+                'createRequestArgs' => [
+                    'method' => 'GET',
+                    'url' => 'http://example.com/',
+                    'options' => [],
+                ],
+                'responseFixtures' => [
+                    'HTTP/1.1 404 Not Found',
+                    'HTTP/1.1 200 OK',
+                ],
+                'expectedExceptionMessage' => 'OK',
+                'expectedExceptionCode' => 200,
+                'expectedExceptionResponseContentType' => '',
             ],
         ];
     }
@@ -295,6 +354,25 @@ class ServiceTest extends \PHPUnit_Framework_TestCase
                 'expectedResourceClassName' => WebPage::class,
                 'expectedResourceContent' => '<!doctype><html>',
             ],
+            'text/html with mapped resource type and content-type pre-verification' => [
+                'configuration' => new Configuration([
+                    Configuration::CONFIG_KEY_CONTENT_TYPE_WEB_RESOURCE_MAP => [
+                        'text/html' => WebPage::class,
+                    ],
+                    Configuration::CONFIG_ALLOW_UNKNOWN_RESOURCE_TYPES => false,
+                ]),
+                'createRequestArgs' => [
+                    'method' => 'GET',
+                    'url' => 'http://example.com/',
+                    'options' => [],
+                ],
+                'responseFixtures' => [
+                    "HTTP/1.1 200 OK\nContent-type:text/html",
+                    "HTTP/1.1 200 OK\nContent-type:text/html\n\n<!doctype><html>",
+                ],
+                'expectedResourceClassName' => WebPage::class,
+                'expectedResourceContent' => '<!doctype><html>',
+            ],
         ];
     }
 
@@ -315,7 +393,7 @@ class ServiceTest extends \PHPUnit_Framework_TestCase
      * @param ResponseInterface $response
      * @param string $expectedWebResourceClassName
      */
-    public function testCreateFoo(
+    public function testCreate(
         Configuration $configuration,
         ResponseInterface $response,
         $expectedWebResourceClassName
