@@ -82,16 +82,6 @@ class Configuration
         return $this->allowUnknownResourceTypes;
     }
 
-    public function enableRetryWithUrlEncodingDisabled()
-    {
-        $this->retryWithUrlEncodingDisabled = true;
-    }
-
-    public function disableRetryWithUrlEncodingDisabled()
-    {
-        $this->retryWithUrlEncodingDisabled = false;
-    }
-
     /**
      * @return boolean
      */
@@ -122,5 +112,22 @@ class Configuration
         return ($this->hasMappedWebResourceClassName($contentType))
             ? $this->contentTypeWebResourceMap[(string)$contentType]
             : self::DEFAULT_WEB_RESOURCE_MODEL;
+    }
+
+    /**
+     * @param array $configurationValues
+     *
+     * @return Configuration
+     */
+    public function createFromCurrent($configurationValues)
+    {
+        $currentConfigurationValues = [
+            self::CONFIG_KEY_CONTENT_TYPE_WEB_RESOURCE_MAP => $this->getContentTypeWebResourceMap(),
+            self::CONFIG_ALLOW_UNKNOWN_RESOURCE_TYPES => $this->getAllowUnknownResourceTypes(),
+            self::CONFIG_RETRY_WITH_URL_ENCODING_DISABLED => $this->getRetryWithUrlEncodingDisabled(),
+            self::CONFIG_KEY_HTTP_CLIENT => $this->getHttpClient(),
+        ];
+
+        return new Configuration(array_merge($currentConfigurationValues, $configurationValues));
     }
 }
