@@ -82,14 +82,12 @@ class Configuration
         return $this->allowUnknownResourceTypes;
     }
 
-    public function enableRetryWithUrlEncodingDisabled()
+    /**
+     * @param bool $retryWithUrlEncodingDisabled
+     */
+    public function setRetryWithUrlEncodingDisabled($retryWithUrlEncodingDisabled)
     {
-        $this->retryWithUrlEncodingDisabled = true;
-    }
-
-    public function disableRetryWithUrlEncodingDisabled()
-    {
-        $this->retryWithUrlEncodingDisabled = false;
+        $this->retryWithUrlEncodingDisabled = $retryWithUrlEncodingDisabled;
     }
 
     /**
