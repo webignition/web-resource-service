@@ -72,15 +72,15 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    public function testEnableDisableRetryWithUrlEncodingDisabled()
+    public function testSetRetryWithUrlEncodingDisabled()
     {
         $configuration = new Configuration();
         $this->assertFalse($configuration->getRetryWithUrlEncodingDisabled());
 
-        $configuration->enableRetryWithUrlEncodingDisabled();
+        $configuration->setRetryWithUrlEncodingDisabled(true);
         $this->assertTrue($configuration->getRetryWithUrlEncodingDisabled());
 
-        $configuration->disableRetryWithUrlEncodingDisabled();
+        $configuration->setRetryWithUrlEncodingDisabled(false);
         $this->assertFalse($configuration->getRetryWithUrlEncodingDisabled());
     }
 
