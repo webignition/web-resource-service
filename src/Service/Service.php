@@ -41,32 +41,28 @@ class Service
 
     /**
      * @param HttpRequest $request
-     *
-     * @throws InvalidContentTypeException
-     * @throws Exception
+     * @param bool|null $retryWithUrlEncodingDisabled
      *
      * @return WebResource
+     * @throws Exception
+     * @throws InvalidContentTypeException
      */
-    public function get(HttpRequest $request)
+    public function get(HttpRequest $request, $retryWithUrlEncodingDisabled = null)
     {
         $configuration = $this->getConfiguration();
 
         try {
             $response = $configuration->getHttpClient()->send($request);
         } catch (BadResponseException $badResponseException) {
-            $isRetryWithUrlEncodingDisabled = $configuration->getRetryWithUrlEncodingDisabled();
-            $hasTriedWithUrlEncodingDisabled = $configuration->getHasRetriedWithUrlEncodingDisabled();
+            if (is_null($retryWithUrlEncodingDisabled) && $configuration->getRetryWithUrlEncodingDisabled()) {
+                $retryWithUrlEncodingDisabled = true;
+            }
 
-            if ($isRetryWithUrlEncodingDisabled && !$hasTriedWithUrlEncodingDisabled) {
-                $configuration->setHasRetriedWithUrlEncodingDisabled(true);
-                return $this->get($this->deEncodeRequestUrl($request));
+            if ($retryWithUrlEncodingDisabled) {
+                return $this->get($this->deEncodeRequestUrl($request), false);
             }
 
             $response = $badResponseException->getResponse();
-        }
-
-        if ($configuration->getHasRetriedWithUrlEncodingDisabled()) {
-            $configuration->setHasRetriedWithUrlEncodingDisabled(false);
         }
 
         if ($this->isBadResponse($response)) {
