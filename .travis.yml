@@ -12,7 +12,3 @@ install:
 script:
   - composer cs
   - composer test
-
-matrix:
-  allow_failures:
-  - php: 7.2
