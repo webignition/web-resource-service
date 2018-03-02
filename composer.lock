@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "3b6d76bd3701471a5691383050fe053d",
+    "content-hash": "eb957475733c32cc853da22f9010c07d",
     "packages": [
         {
             "name": "doctrine/collections",
@@ -741,18 +741,7 @@
                     "webignition\\Tests\\WebResource\\JsonDocument\\": "tests/"
                 }
             },
-            "scripts": {
-                "test": [
-                    "./vendor/bin/phpunit --colors=always"
-                ],
-                "cs": [
-                    "./vendor/bin/phpcs src tests --colors --standard=PSR2"
-                ],
-                "ci": [
-                    "@composer cs",
-                    "@composer test"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -768,10 +757,6 @@
                 "json",
                 "model"
             ],
-            "support": {
-                "source": "https://github.com/webignition/web-json-model/tree/1.1.6",
-                "issues": "https://github.com/webignition/web-json-model/issues"
-            },
             "time": "2018-03-02T09:23:55+00:00"
         },
         {
