@@ -26,10 +26,6 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/webignition/web-page-model"
-        },
-        {
-            "type": "vcs",
             "url": "https://github.com/webignition/web-json-model"
         }
     ],
