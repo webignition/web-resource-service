@@ -24,6 +24,9 @@ class ServiceTest extends \PHPUnit_Framework_TestCase
      * @param string[] $responseFixtures
      * @param string $expectedExceptionMessage
      * @param int $expectedExceptionCode
+     *
+     * @throws InvalidContentTypeException
+     * @throws WebResourceException
      */
     public function testThrowsWebResourceException(
         Configuration $configuration,
@@ -32,11 +35,9 @@ class ServiceTest extends \PHPUnit_Framework_TestCase
         $expectedExceptionMessage,
         $expectedExceptionCode
     ) {
-        $this->setExpectedException(
-            WebResourceException::class,
-            $expectedExceptionMessage,
-            $expectedExceptionCode
-        );
+        $this->expectException(WebResourceException::class);
+        $this->expectExceptionMessage($expectedExceptionMessage);
+        $this->expectExceptionCode($expectedExceptionCode);
 
         $request = $this->createRequest(
             $createRequestArgs['method'],
@@ -157,6 +158,8 @@ class ServiceTest extends \PHPUnit_Framework_TestCase
      * @param string $expectedExceptionMessage
      * @param int $expectedExceptionCode
      * @param string $expectedExceptionResponseContentType
+     *
+     * @throws WebResourceException
      */
     public function testGetInvalidContentType(
         Configuration $configuration,
@@ -282,6 +285,9 @@ class ServiceTest extends \PHPUnit_Framework_TestCase
      * @param string[] $responseFixtures
      * @param string $expectedResourceClassName
      * @param string $expectedResourceContent
+     *
+     * @throws InvalidContentTypeException
+     * @throws WebResourceException
      */
     public function testGet(
         Configuration $configuration,
