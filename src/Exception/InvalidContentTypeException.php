@@ -2,8 +2,8 @@
 
 namespace webignition\WebResource\Exception;
 
-use GuzzleHttp\Message\ResponseInterface as HttpResponse;
-use GuzzleHttp\Message\RequestInterface as HttpRequest;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use webignition\InternetMediaType\InternetMediaType;
 
 class InvalidContentTypeException extends Exception
@@ -15,11 +15,14 @@ class InvalidContentTypeException extends Exception
 
     /**
      * @param InternetMediaType $responseContentType
-     * @param HttpResponse $response
-     * @param HttpRequest $request
+     * @param ResponseInterface $response
+     * @param RequestInterface $request
      */
-    public function __construct(InternetMediaType $responseContentType, HttpResponse $response, HttpRequest $request)
-    {
+    public function __construct(
+        InternetMediaType $responseContentType,
+        ResponseInterface $response,
+        RequestInterface $request
+    ) {
         $this->responseContentType = $responseContentType;
 
         parent::__construct($response, $request);

@@ -3,13 +3,13 @@
 namespace webignition\WebResource\Service;
 
 use GuzzleHttp\Exception\BadResponseException;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use webignition\InternetMediaType\InternetMediaType;
 use webignition\InternetMediaType\Parser\Parser as InternetMediaTypeParser;
 use webignition\WebResource\Exception\Exception as WebResourceException;
 use webignition\WebResource\Exception\Exception;
 use webignition\WebResource\Exception\InvalidContentTypeException;
-use GuzzleHttp\Message\ResponseInterface as HttpResponse;
-use GuzzleHttp\Message\RequestInterface as HttpRequest;
 use webignition\WebResource\WebResource;
 
 class Service
@@ -40,20 +40,20 @@ class Service
     }
 
     /**
-     * @param HttpRequest $request
+     * @param RequestInterface $request
      * @param bool|null $retryWithUrlEncodingDisabled
      *
      * @return WebResource
      * @throws Exception
      * @throws InvalidContentTypeException
      */
-    public function get(HttpRequest $request, $retryWithUrlEncodingDisabled = null)
+    public function get(RequestInterface $request, $retryWithUrlEncodingDisabled = null)
     {
         $configuration = $this->getConfiguration();
 
         if (!$configuration->getAllowUnknownResourceTypes()) {
             $headRequest = clone $request;
-            $headRequest->setMethod('HEAD');
+            $headRequest->withMethod('HEAD');
 
             $this->preVerifyContentType($headRequest);
         }
@@ -100,14 +100,14 @@ class Service
     }
 
     /**
-     * @param HttpRequest $request
+     * @param RequestInterface $request
      * @param bool|null $retryWithUrlEncodingDisabled
      *
      * @return bool
      * @throws Exception
      * @throws InvalidContentTypeException
      */
-    private function preVerifyContentType(HttpRequest $request, $retryWithUrlEncodingDisabled = null)
+    private function preVerifyContentType(RequestInterface $request, $retryWithUrlEncodingDisabled = null)
     {
         $configuration = $this->getConfiguration();
 
@@ -143,87 +143,96 @@ class Service
     }
 
     /**
-     * @param HttpResponse $response
+     * @param ResponseInterface $response
+     * @param string|null $url
      *
      * @return WebResource
      */
-    public function create(HttpResponse $response)
+    public function create(ResponseInterface $response, $url = null)
     {
         $configuration = $this->getConfiguration();
+        $responseContentType = $this->getContentTypeFromResponse($response);
 
         $webResourceClassName = $configuration->getWebResourceClassName(
-            $this->getContentTypeFromResponse($response)->getTypeSubtypeString()
+            $responseContentType->getTypeSubtypeString()
         );
 
         /* @var $resource WebResource */
-        $resource = new $webResourceClassName;
-        $resource->setHttpResponse($response);
+        $resource = new $webResourceClassName($response, $url);
 
         return $resource;
     }
 
     /**
-     * @param HttpResponse $response
+     * @param ResponseInterface $response
      *
      * @return InternetMediaType
      */
-    private function getContentTypeFromResponse(HttpResponse $response)
+    private function getContentTypeFromResponse(ResponseInterface $response)
     {
         $mediaTypeParser = new InternetMediaTypeParser();
         $mediaTypeParser->setAttemptToRecoverFromInvalidInternalCharacter(true);
         $mediaTypeParser->setIgnoreInvalidAttributes(true);
 
-        return $mediaTypeParser->parse($response->getHeader('content-type'));
+        $contentTypeHeader = $response->getHeader($response->getHeader('content-type'));
+        $contentTypeString = empty($contentTypeHeader)
+            ? ''
+            : $contentTypeHeader[0];
+
+        return $mediaTypeParser->parse($contentTypeString);
     }
 
     /**
-     * @param HttpRequest $request
+     * @param RequestInterface $request
      *
-     * @return HttpRequest
+     * @return RequestInterface
      */
-    private function deEncodeRequestUrl(HttpRequest $request)
+    private function deEncodeRequestUrl(RequestInterface $request)
     {
-        $request->getQuery()->setEncodingType(false);
+        $query = $request->getUri()->getQuery();
+        $decodedQuery = rawurldecode($query);
+
+        $request->getUri()->withQuery($decodedQuery);
 
         return $request;
     }
 
     /**
-     * @param HttpResponse $response
+     * @param ResponseInterface $response
      *
      * @return bool
      */
-    private function isInformationalResponse(HttpResponse $response)
+    private function isInformationalResponse(ResponseInterface $response)
     {
         return $response->getStatusCode() < 200;
     }
 
     /**
-     * @param HttpResponse $response
+     * @param ResponseInterface $response
      *
      * @return bool
      */
-    private function isRedirectResponse(HttpResponse $response)
+    private function isRedirectResponse(ResponseInterface $response)
     {
         return $response->getStatusCode() >= 300 && $response->getStatusCode() < 400;
     }
 
     /**
-     * @param HttpResponse $response
+     * @param ResponseInterface $response
      *
      * @return bool
      */
-    private function isBadResponse(HttpResponse $response)
+    private function isBadResponse(ResponseInterface $response)
     {
         return $response->getStatusCode() >= 400;
     }
 
     /**
-     * @param HttpResponse $response
+     * @param ResponseInterface $response
      *
      * @return bool
      */
-    private function isSuccessResponse(HttpResponse $response)
+    private function isSuccessResponse(ResponseInterface $response)
     {
         return $response->getStatusCode() >= 200 && $response->getStatusCode() < 300;
     }
