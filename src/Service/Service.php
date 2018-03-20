@@ -44,6 +44,7 @@ class Service
      * @param bool|null $retryWithUrlEncodingDisabled
      *
      * @return WebResource
+     *
      * @throws Exception
      * @throws InvalidContentTypeException
      */
@@ -87,16 +88,16 @@ class Service
         }
 
         $contentType = $this->getContentTypeFromResponse($response);
-
-        $hasMappedWebResourceClassName = $configuration->hasMappedWebResourceClassName(
-            $contentType->getTypeSubtypeString()
-        );
+        $contentTypeSubtypeString = $contentType->getTypeSubtypeString();
+        $hasMappedWebResourceClassName = $configuration->hasMappedWebResourceClassName($contentTypeSubtypeString);
 
         if (!$hasMappedWebResourceClassName && !$configuration->getAllowUnknownResourceTypes()) {
             throw new InvalidContentTypeException($contentType, $response, $request);
         }
 
-        return $this->create($response);
+        $webResourceClassName = $configuration->getWebResourceClassName($contentTypeSubtypeString);
+
+        return new $webResourceClassName($response, $request->getUri());
     }
 
     /**
@@ -144,27 +145,6 @@ class Service
 
     /**
      * @param ResponseInterface $response
-     * @param string|null $url
-     *
-     * @return WebResource
-     */
-    public function create(ResponseInterface $response, $url = null)
-    {
-        $configuration = $this->getConfiguration();
-        $responseContentType = $this->getContentTypeFromResponse($response);
-
-        $webResourceClassName = $configuration->getWebResourceClassName(
-            $responseContentType->getTypeSubtypeString()
-        );
-
-        /* @var $resource WebResource */
-        $resource = new $webResourceClassName($response, $url);
-
-        return $resource;
-    }
-
-    /**
-     * @param ResponseInterface $response
      *
      * @return InternetMediaType
      */
@@ -174,7 +154,7 @@ class Service
         $mediaTypeParser->setAttemptToRecoverFromInvalidInternalCharacter(true);
         $mediaTypeParser->setIgnoreInvalidAttributes(true);
 
-        $contentTypeHeader = $response->getHeader($response->getHeader('content-type'));
+        $contentTypeHeader = $response->getHeader('content-type');
         $contentTypeString = empty($contentTypeHeader)
             ? ''
             : $contentTypeHeader[0];
