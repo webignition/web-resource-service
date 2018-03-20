@@ -2,22 +2,27 @@
 
 namespace webignition\Tests\WebResource\Service;
 
-use GuzzleHttp\Message\ResponseInterface as HttpResponse;
-use GuzzleHttp\Message\RequestInterface as HttpRequest;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use webignition\Tests\WebResource\Service\Factory\ResponseFactory;
 use webignition\WebResource\Exception\Exception as WebResourceException;
 
-class ExceptionTest extends AbstractExceptionTest
+class ExceptionTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @dataProvider exceptionDataProvider
      *
-     * @param HttpResponse $response
-     * @param HttpRequest $request
+     * @param ResponseInterface $response
+     * @param RequestInterface $request
      * @param string $expectedMessage
      * @param int $expectedCode
      */
-    public function testException(HttpResponse $response, HttpRequest $request, $expectedMessage, $expectedCode)
-    {
+    public function testException(
+        ResponseInterface $response,
+        RequestInterface $request,
+        $expectedMessage,
+        $expectedCode
+    ) {
         $exception = new WebResourceException($response, $request);
 
         $this->assertEquals($response, $exception->getResponse());
@@ -41,8 +46,8 @@ class ExceptionTest extends AbstractExceptionTest
 
         foreach ($testDataValues as $statusCode => $reasonPhrase) {
             $testData[$statusCode] = [
-                'response' => $this->createResponse($reasonPhrase, $statusCode),
-                'request' => \Mockery::mock(HttpRequest::class),
+                'response' => ResponseFactory::create($statusCode, $reasonPhrase),
+                'request' => \Mockery::mock(RequestInterface::class),
                 'expectedMessage' => $reasonPhrase,
                 'expectedCode' => $statusCode,
             ];

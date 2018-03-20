@@ -2,28 +2,29 @@
 
 namespace webignition\Tests\WebResource\Service;
 
-use GuzzleHttp\Message\ResponseInterface as HttpResponse;
-use GuzzleHttp\Message\RequestInterface as HttpRequest;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 use webignition\InternetMediaType\InternetMediaType;
 use webignition\InternetMediaType\Parser\Parser as InternetMediaTypeParser;
+use webignition\Tests\WebResource\Service\Factory\ResponseFactory;
 use webignition\WebResource\Exception\InvalidContentTypeException;
 
-class InvalidContentTypeExceptionTest extends AbstractExceptionTest
+class InvalidContentTypeExceptionTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @dataProvider exceptionDataProvider
      *
      * @param InternetMediaType $responseContentType
-     * @param HttpResponse $response
-     * @param HttpRequest $request
+     * @param ResponseInterface $response
+     * @param RequestInterface $request
      * @param string $expectedMessage
      * @param int $expectedCode
      * @param InternetMediaType $expectedResponseContentType
      */
     public function testException(
         InternetMediaType $responseContentType,
-        HttpResponse $response,
-        HttpRequest $request,
+        ResponseInterface $response,
+        RequestInterface $request,
         $expectedMessage,
         $expectedCode,
         InternetMediaType $expectedResponseContentType
@@ -61,8 +62,8 @@ class InvalidContentTypeExceptionTest extends AbstractExceptionTest
 
             $testData[$contentTypeString] = [
                 'responseContentType' => $mediaType,
-                'response' => $this->createResponse('OK', 200),
-                'request' => \Mockery::mock(HttpRequest::class),
+                'response' => ResponseFactory::create(),
+                'request' => \Mockery::mock(RequestInterface::class),
                 'expectedMessage' => 'OK',
                 'expectedCode' => 200,
                 'expectedResponseContentType' => $mediaType,
