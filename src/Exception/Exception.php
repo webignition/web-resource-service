@@ -2,28 +2,27 @@
 
 namespace webignition\WebResource\Exception;
 
-use GuzzleHttp\Message\ResponseInterface as HttpResponse;
-use GuzzleHttp\Message\RequestInterface as HttpRequest;
-use \Exception as BaseException;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
-class Exception extends BaseException
+class Exception extends \Exception
 {
     /**
-     * @var HttpResponse
+     * @var ResponseInterface
      */
     private $response;
 
     /**
      *
-     * @var HttpRequest
+     * @var RequestInterface
      */
     private $request;
 
     /**
-     * @param HttpResponse $response
-     * @param HttpRequest $request
+     * @param ResponseInterface $response
+     * @param RequestInterface|null $request
      */
-    public function __construct(HttpResponse $response, HttpRequest $request = null)
+    public function __construct(ResponseInterface $response, RequestInterface $request = null)
     {
         $this->response = $response;
         $this->request = $request;
@@ -32,7 +31,7 @@ class Exception extends BaseException
     }
 
     /**
-     * @return HttpResponse
+     * @return ResponseInterface
      */
     public function getResponse()
     {
@@ -40,7 +39,7 @@ class Exception extends BaseException
     }
 
     /**
-     * @return HttpRequest
+     * @return RequestInterface
      */
     public function getRequest()
     {

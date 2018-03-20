@@ -7,8 +7,12 @@ php:
   - 7.2
 
 install:
-  - composer install
+  - composer install --prefer-dist
 
 script:
   - composer cs
   - composer test
+
+cache:
+  directories:
+    - $HOME/.composer/cache/files
