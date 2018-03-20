@@ -12,7 +12,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "webignition\\Tests\\WebResource\\": "tests/"
+            "webignition\\Tests\\WebResource\\": "tests/",
+            "webignition\\Tests\\WebResource\\Service\\Factory\\": "tests/Factory"
         }
     },
     "scripts": {
@@ -25,11 +26,11 @@
     },
     "require": {
         "php": ">=5.6.0",
-        "guzzlehttp/guzzle":"~5",
+        "guzzlehttp/guzzle":"~6",
         "webignition/internet-media-type":">=0.4.4,<2.0",
-        "webignition/web-resource-model":">=1.3,<2",
-        "webignition/web-page-model":">=1.3,<2",
-        "webignition/web-json-model":">=1.1.6,<2",
+        "webignition/web-resource-model":">=2,<3",
+        "webignition/web-page-model":">=2,<3",
+        "webignition/web-json-model":">=2,<3",
         "webignition/url":">=1.9.14,<2.0"
     },
     "require-dev": {
